@@ -5,6 +5,7 @@ import { createRequire } from 'module';
 import { WindowManager } from './window-manager.js';
 import { IPCChannels } from '../common/channels.js';
 import { setupCoreIPC, initializeCore } from './core-integration.js';
+import { configureMacOSWindow, isDarkMode, getAccentColor } from './macos/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,7 +37,23 @@ class XSGDesktopApp {
         console.error('[Main] Core initialization failed:', error);
       }
 
-      this.windowManager.createMainWindow();
+      const mainWindow = this.windowManager.createMainWindow();
+
+      // Configure macOS-specific features
+      if (process.platform === 'darwin') {
+        configureMacOSWindow(mainWindow, {
+          onNewChat: () => mainWindow.webContents.send('menu-new-chat'),
+          onOpenSettings: () => mainWindow.webContents.send('menu-open-settings'),
+          onToggleAgentPanel: () => mainWindow.webContents.send('menu-toggle-agent-panel'),
+          onToggleSidebar: () => mainWindow.webContents.send('menu-toggle-sidebar'),
+          onSearch: () => mainWindow.webContents.send('menu-search'),
+          onSendMessage: () => mainWindow.webContents.send('menu-send-message'),
+        });
+
+        // Expose macOS-specific APIs
+        ipcMain.handle('macos-is-dark-mode', () => isDarkMode());
+        ipcMain.handle('macos-get-accent-color', () => getAccentColor());
+      }
 
       app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {

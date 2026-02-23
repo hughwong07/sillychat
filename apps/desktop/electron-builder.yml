@@ -28,9 +28,22 @@ mac:
       arch:
         - x64
         - arm64
+        - universal
+    - target: zip
+      arch:
+        - x64
+        - arm64
+        - universal
   icon: assets/icon.icns
   category: public.app-category.social-networking
   darkModeSupport: true
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  asarUnpack:
+    - '**/node_modules/sharp/**/*'
+    - '**/node_modules/@xiaoshagua/core/**/*'
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true

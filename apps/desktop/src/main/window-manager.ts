@@ -1,6 +1,7 @@
-import { BrowserWindow, screen } from 'electron';
+import { BrowserWindow, screen, app } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getRecommendedWindowBounds } from './macos/window.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,16 +10,29 @@ export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
 
   createMainWindow(): BrowserWindow {
-    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+    // Use macOS recommended bounds on macOS, otherwise calculate
+    const bounds = process.platform === 'darwin'
+      ? getRecommendedWindowBounds()
+      : (() => {
+          const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+          return {
+            width: Math.min(1400, width * 0.8),
+            height: Math.min(900, height * 0.8),
+            minWidth: 900,
+            minHeight: 600,
+          };
+        })();
 
     this.mainWindow = new BrowserWindow({
-      width: Math.min(1400, width * 0.8),
-      height: Math.min(900, height * 0.8),
-      minWidth: 900,
-      minHeight: 600,
+      width: bounds.width,
+      height: bounds.height,
+      minWidth: bounds.minWidth,
+      minHeight: bounds.minHeight,
       show: false,
-      frame: false,
-      titleBarStyle: 'hidden',
+      frame: process.platform !== 'darwin', // macOS uses frameless with hidden titlebar
+      titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
+      vibrancy: process.platform === 'darwin' ? 'sidebar' : undefined,
+      visualEffectState: process.platform === 'darwin' ? 'followWindow' : undefined,
       webPreferences: {
         preload: path.join(__dirname, '../preload/index.js'),
         contextIsolation: true,

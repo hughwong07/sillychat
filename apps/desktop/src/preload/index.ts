@@ -53,6 +53,31 @@ const xsgAPI = {
   },
 };
 
+// macOS API
+const macosAPI = {
+  isDarkMode: () => ipcRenderer.invoke('macos-is-dark-mode'),
+  getAccentColor: () => ipcRenderer.invoke('macos-get-accent-color'),
+  onMenuAction: (callback: (action: string) => void) => {
+    const handler = (_: IpcRendererEvent, action: string) => callback(action);
+    ipcRenderer.on('menu-new-chat', () => callback('new-chat'));
+    ipcRenderer.on('menu-open-settings', () => callback('open-settings'));
+    ipcRenderer.on('menu-toggle-agent-panel', () => callback('toggle-agent-panel'));
+    ipcRenderer.on('menu-toggle-sidebar', () => callback('toggle-sidebar'));
+    ipcRenderer.on('menu-search', () => callback('search'));
+    ipcRenderer.on('menu-send-message', () => callback('send-message'));
+    ipcRenderer.on('fullscreen-change', (_, state: boolean) => callback(`fullscreen:${state}`));
+    ipcRenderer.on('system-theme-changed', (_, theme: string) => callback(`theme:${theme}`));
+    return () => {
+      ipcRenderer.off('menu-new-chat', handler);
+      ipcRenderer.off('menu-open-settings', handler);
+      ipcRenderer.off('menu-toggle-agent-panel', handler);
+      ipcRenderer.off('menu-toggle-sidebar', handler);
+      ipcRenderer.off('menu-search', handler);
+      ipcRenderer.off('menu-send-message', handler);
+    };
+  },
+};
+
 // Expose APIs to renderer
 contextBridge.exposeInMainWorld('electronAPI', {
   window: windowAPI,
@@ -61,6 +86,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   platform: platformAPI,
   storage: storageAPI,
   xsg: xsgAPI,
+  macos: macosAPI,
 });
 
 // Type declaration for renderer
@@ -73,6 +99,7 @@ declare global {
       platform: typeof platformAPI;
       storage: typeof storageAPI;
       xsg: typeof xsgAPI;
+      macos?: typeof macosAPI;
     };
   }
 }
