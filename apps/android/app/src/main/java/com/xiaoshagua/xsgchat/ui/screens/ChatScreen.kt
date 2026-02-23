@@ -1,8 +1,10 @@
 package com.xiaoshagua.xsgchat.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -12,118 +14,266 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.xiaoshagua.xsgchat.data.model.Agent
+import com.xiaoshagua.xsgchat.ui.components.*
 import com.xiaoshagua.xsgchat.viewmodel.ChatViewModel
+import kotlinx.coroutines.launch
 
+/**
+ * 聊天主界面
+ * 显示消息列表和输入框
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
     navController: NavController,
     viewModel: ChatViewModel = hiltViewModel()
 ) {
-    val messages by viewModel.messages.collectAsState()
-    val inputText by viewModel.inputText.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val reversedMessages by viewModel.reversedMessages.collectAsState()
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+
+    // 当有新消息时滚动到底部
+    LaunchedEffect(reversedMessages.size) {
+        if (reversedMessages.isNotEmpty()) {
+            scope.launch {
+                listState.animateScrollToItem(0)
+            }
+        }
+    }
+
+    // 错误提示
+    uiState.error?.let { error ->
+        LaunchedEffect(error) {
+            // 显示错误提示，稍后自动清除
+            kotlinx.coroutines.delay(3000)
+            viewModel.clearError()
+        }
+    }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("小傻瓜聊天") },
-                actions = {
-                    IconButton(onClick = { navController.navigate("agents") }) {
-                        Icon(Icons.Default.SmartToy, contentDescription = "AI Agents")
-                    }
-                    IconButton(onClick = { navController.navigate("settings") }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
-                    }
-                }
+            ChatTopBar(
+                title = uiState.selectedAgent?.name ?: "小傻瓜聊天",
+                onAgentsClick = { navController.navigate("agents") },
+                onSettingsClick = { navController.navigate("settings") },
+                onProfileClick = { navController.navigate("profile") },
+                selectedAgent = uiState.selectedAgent,
+                availableAgents = uiState.availableAgents,
+                onAgentSelect = { viewModel.selectAgent(it) }
             )
         },
         bottomBar = {
-            ChatInputBar(
-                inputText = inputText,
-                onInputChange = viewModel::onInputChange,
-                onSend = viewModel::sendMessage
+            MessageInput(
+                value = uiState.inputText,
+                onValueChange = viewModel::onInputChange,
+                onSend = { viewModel.sendMessageStream() },
+                onAttachClick = { /* TODO: 打开附件选择 */ },
+                enabled = !uiState.isLoading,
+                isSending = uiState.isSending
             )
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = remember { SnackbarHostState() })
         }
     ) { padding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp),
-            reverseLayout = true
         ) {
-            items(messages.reversed()) { message ->
-                MessageItem(message = message)
+            when {
+                // 加载中
+                uiState.isLoading && reversedMessages.isEmpty() -> {
+                    FullScreenLoading(message = "加载消息中...")
+                }
+
+                // 空状态
+                reversedMessages.isEmpty() && !uiState.isLoading -> {
+                    EmptyStateView(
+                        title = "开始聊天",
+                        description = "发送消息开始与AI助手对话",
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Chat,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                            )
+                        }
+                    )
+                }
+
+                // 消息列表
+                else -> {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        reverseLayout = true,
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        items(
+                            items = reversedMessages,
+                            key = { it.id }
+                        ) { message ->
+                            MessageItem(
+                                message = message,
+                                onLongClick = {
+                                    // TODO: 显示消息操作菜单
+                                }
+                            )
+                        }
+
+                        // 流式响应显示
+                        if (uiState.isSending && uiState.streamingContent.isNotEmpty()) {
+                            item {
+                                StreamingMessageItem(
+                                    content = uiState.streamingContent,
+                                    agentName = uiState.selectedAgent?.name
+                                )
+                            }
+                        }
+
+                        // 加载更多指示器
+                        if (uiState.hasMoreMessages) {
+                            item {
+                                LoadMoreIndicator()
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 错误提示
+            uiState.error?.let { error ->
+                Snackbar(
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    action = {
+                        TextButton(onClick = { viewModel.clearError() }) {
+                            Text("确定")
+                        }
+                    }
+                ) {
+                    Text(error)
+                }
+            }
+
+            // 滚动到底部按钮
+            val showScrollToBottom by remember {
+                derivedStateOf {
+                    listState.firstVisibleItemIndex > 2
+                }
+            }
+
+            if (showScrollToBottom) {
+                FloatingActionButton(
+                    onClick = {
+                        scope.launch {
+                            listState.animateScrollToItem(0)
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp)
+                        .padding(bottom = 80.dp),
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "滚动到底部"
+                    )
+                }
             }
         }
     }
 }
 
+/**
+ * 聊天顶部栏
+ */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 @Composable
-fun MessageItem(message: ChatMessage) {
-    val isUser = message.role == "user"
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        contentAlignment = if (isUser) Alignment.CenterEnd else Alignment.CenterStart
-    ) {
-        Surface(
-            color = if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-            shape = MaterialTheme.shapes.medium,
-            tonalElevation = if (isUser) 0.dp else 2.dp
-        ) {
-            Text(
-                text = message.content,
-                modifier = Modifier.padding(12.dp),
-                color = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-fun ChatInputBar(
-    inputText: String,
-    onInputChange: (String) -> Unit,
-    onSend: () -> Unit
+private fun ChatTopBar(
+    title: String,
+    onAgentsClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onProfileClick: () -> Unit,
+    selectedAgent: Agent?,
+    availableAgents: List<Agent>,
+    onAgentSelect: (Agent) -> Unit
 ) {
-    Surface(
-        tonalElevation = 3.dp,
-        color = MaterialTheme.colorScheme.surface
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = { /* Attach file */ }) {
-                Icon(Icons.Default.AttachFile, contentDescription = "Attach")
-            }
+    var showAgentMenu by remember { mutableStateOf(false) }
 
-            OutlinedTextField(
-                value = inputText,
-                onValueChange = onInputChange,
-                modifier = Modifier.weight(1f),
-                placeholder = { Text("输入消息...") },
-                maxLines = 4
-            )
-
-            IconButton(
-                onClick = onSend,
-                enabled = inputText.isNotBlank()
+    TopAppBar(
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { showAgentMenu = true }
             ) {
-                Icon(Icons.Default.Send, contentDescription = "Send")
+                Text(title)
+
+                if (availableAgents.size > 1) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = "切换代理",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                // 代理选择下拉菜单
+                DropdownMenu(
+                    expanded = showAgentMenu,
+                    onDismissRequest = { showAgentMenu = false }
+                ) {
+                    availableAgents.forEach { agent ->
+                        DropdownMenuItem(
+                            text = {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(agent.name)
+                                    if (agent.id == selectedAgent?.id) {
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                }
+                            },
+                            onClick = {
+                                onAgentSelect(agent)
+                                showAgentMenu = false
+                            }
+                        )
+                    }
+                }
+            }
+        },
+        navigationIcon = {
+            IconButton(onClick = onProfileClick) {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = "个人资料"
+                )
+            }
+        },
+        actions = {
+            IconButton(onClick = onAgentsClick) {
+                Icon(
+                    imageVector = Icons.Default.SmartToy,
+                    contentDescription = "AI代理"
+                )
+            }
+            IconButton(onClick = onSettingsClick) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "设置"
+                )
             }
         }
-    }
+    )
 }
-
-data class ChatMessage(
-    val id: String,
-    val content: String,
-    val role: String,
-    val timestamp: Long = System.currentTimeMillis()
-)

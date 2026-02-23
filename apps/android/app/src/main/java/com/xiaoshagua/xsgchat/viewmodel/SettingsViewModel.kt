@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -135,6 +136,7 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
     init {
+        Timber.d("SettingsViewModel 初始化")
         loadSettings()
     }
 
@@ -144,33 +146,45 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      */
     private fun loadSettings() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, error = null) }
 
-            // 模拟从本地存储加载设置
-            // 实际项目中使用 DataStore:
-            // val themeMode = dataStore.getThemeMode()
-            // val language = dataStore.getLanguage()
-            // ...
+            try {
+                // 模拟从本地存储加载设置
+                // 实际项目中使用 DataStore:
+                // val themeMode = dataStore.getThemeMode()
+                // val language = dataStore.getLanguage()
+                // ...
 
-            kotlinx.coroutines.delay(300) // 模拟加载延迟
+                kotlinx.coroutines.delay(300) // 模拟加载延迟
 
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    // 这里使用默认值，实际应从存储读取
-                    themeMode = ThemeMode.SYSTEM,
-                    language = AppLanguage.SYSTEM,
-                    notificationsEnabled = true,
-                    soundEnabled = true,
-                    vibrationEnabled = true,
-                    autoSyncEnabled = true,
-                    syncOnlyOnWifi = false,
-                    fontSize = FontSize.MEDIUM,
-                    bubbleStyle = BubbleStyle.MODERN,
-                    biometricEnabled = false,
-                    isBiometricSet = false,
-                    apiServerUrl = "https://api.xiaoshagua.com"
-                )
+                Timber.d("设置加载成功")
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = null,
+                        // 这里使用默认值，实际应从存储读取
+                        themeMode = ThemeMode.SYSTEM,
+                        language = AppLanguage.SYSTEM,
+                        notificationsEnabled = true,
+                        soundEnabled = true,
+                        vibrationEnabled = true,
+                        autoSyncEnabled = true,
+                        syncOnlyOnWifi = false,
+                        fontSize = FontSize.MEDIUM,
+                        bubbleStyle = BubbleStyle.MODERN,
+                        biometricEnabled = false,
+                        isBiometricSet = false,
+                        apiServerUrl = "https://api.xiaoshagua.com"
+                    )
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "加载设置失败")
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = "加载设置失败: ${e.message}"
+                    )
+                }
             }
         }
     }
@@ -180,25 +194,37 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      */
     fun saveSettings() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, error = null) }
 
-            // 实际项目中保存到 DataStore
-            // dataStore.saveThemeMode(_uiState.value.themeMode)
-            // dataStore.saveLanguage(_uiState.value.language)
-            // ...
+            try {
+                // 实际项目中保存到 DataStore
+                // dataStore.saveThemeMode(_uiState.value.themeMode)
+                // dataStore.saveLanguage(_uiState.value.language)
+                // ...
 
-            kotlinx.coroutines.delay(200)
+                kotlinx.coroutines.delay(200)
 
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    successMessage = "设置已保存"
-                )
+                Timber.d("设置保存成功")
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = null,
+                        successMessage = "设置已保存"
+                    )
+                }
+
+                // 清除成功消息
+                kotlinx.coroutines.delay(2000)
+                _uiState.update { it.copy(successMessage = null) }
+            } catch (e: Exception) {
+                Timber.e(e, "保存设置失败")
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = "保存设置失败: ${e.message}"
+                    )
+                }
             }
-
-            // 清除成功消息
-            kotlinx.coroutines.delay(2000)
-            _uiState.update { it.copy(successMessage = null) }
         }
     }
 
@@ -206,6 +232,7 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      * 设置主题模式
      */
     fun setThemeMode(mode: ThemeMode) {
+        Timber.d("设置主题模式: $mode")
         _uiState.update { it.copy(themeMode = mode) }
         saveSettings()
     }
@@ -214,6 +241,7 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      * 设置语言
      */
     fun setLanguage(language: AppLanguage) {
+        Timber.d("设置语言: $language")
         _uiState.update { it.copy(language = language) }
         saveSettings()
     }
@@ -222,6 +250,7 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      * 设置通知开关
      */
     fun setNotificationsEnabled(enabled: Boolean) {
+        Timber.d("设置通知开关: $enabled")
         _uiState.update { it.copy(notificationsEnabled = enabled) }
         saveSettings()
     }
@@ -230,6 +259,7 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      * 设置声音开关
      */
     fun setSoundEnabled(enabled: Boolean) {
+        Timber.d("设置声音开关: $enabled")
         _uiState.update { it.copy(soundEnabled = enabled) }
         saveSettings()
     }
@@ -238,6 +268,7 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      * 设置震动开关
      */
     fun setVibrationEnabled(enabled: Boolean) {
+        Timber.d("设置震动开关: $enabled")
         _uiState.update { it.copy(vibrationEnabled = enabled) }
         saveSettings()
     }
@@ -246,6 +277,7 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      * 设置自动同步
      */
     fun setAutoSyncEnabled(enabled: Boolean) {
+        Timber.d("设置自动同步: $enabled")
         _uiState.update { it.copy(autoSyncEnabled = enabled) }
         saveSettings()
     }
@@ -254,6 +286,7 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      * 设置仅WiFi同步
      */
     fun setSyncOnlyOnWifi(enabled: Boolean) {
+        Timber.d("设置仅WiFi同步: $enabled")
         _uiState.update { it.copy(syncOnlyOnWifi = enabled) }
         saveSettings()
     }
@@ -262,6 +295,7 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      * 设置字体大小
      */
     fun setFontSize(size: FontSize) {
+        Timber.d("设置字体大小: $size")
         _uiState.update { it.copy(fontSize = size) }
         saveSettings()
     }
@@ -270,6 +304,7 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      * 设置气泡样式
      */
     fun setBubbleStyle(style: BubbleStyle) {
+        Timber.d("设置气泡样式: $style")
         _uiState.update { it.copy(bubbleStyle = style) }
         saveSettings()
     }
@@ -278,6 +313,7 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      * 设置生物识别
      */
     fun setBiometricEnabled(enabled: Boolean) {
+        Timber.d("设置生物识别: $enabled")
         _uiState.update { it.copy(biometricEnabled = enabled) }
         saveSettings()
     }
@@ -286,6 +322,7 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      * 更新生物识别设置状态
      */
     fun updateBiometricSetStatus(isSet: Boolean) {
+        Timber.d("更新生物识别设置状态: $isSet")
         _uiState.update { it.copy(isBiometricSet = isSet) }
     }
 
@@ -293,6 +330,7 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      * 设置API服务器地址
      */
     fun setApiServerUrl(url: String) {
+        Timber.d("设置API服务器地址: $url")
         _uiState.update { it.copy(apiServerUrl = url) }
     }
 
@@ -300,38 +338,52 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      * 验证并保存API服务器地址
      */
     fun validateAndSaveApiUrl(url: String) {
+        Timber.d("验证并保存API服务器地址: $url")
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            // 验证URL格式
-            val isValid = try {
-                java.net.URL(url)
-                true
+            try {
+                // 验证URL格式
+                val isValid = try {
+                    java.net.URL(url)
+                    true
+                } catch (e: Exception) {
+                    Timber.w(e, "无效的URL格式: $url")
+                    false
+                }
+
+                if (isValid) {
+                    Timber.d("API服务器地址验证通过: $url")
+                    _uiState.update {
+                        it.copy(
+                            apiServerUrl = url,
+                            isLoading = false,
+                            error = null,
+                            successMessage = "服务器地址已更新"
+                        )
+                    }
+                    saveSettings()
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = "无效的URL格式"
+                        )
+                    }
+                }
+
+                // 清除消息
+                kotlinx.coroutines.delay(2000)
+                _uiState.update { it.copy(successMessage = null, error = null) }
             } catch (e: Exception) {
-                false
-            }
-
-            if (isValid) {
-                _uiState.update {
-                    it.copy(
-                        apiServerUrl = url,
-                        isLoading = false,
-                        successMessage = "服务器地址已更新"
-                    )
-                }
-                saveSettings()
-            } else {
+                Timber.e(e, "保存API服务器地址失败: $url")
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        error = "无效的URL格式"
+                        error = "保存失败: ${e.message}"
                     )
                 }
             }
-
-            // 清除消息
-            kotlinx.coroutines.delay(2000)
-            _uiState.update { it.copy(successMessage = null, error = null) }
         }
     }
 
@@ -340,22 +392,34 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      */
     fun clearCache() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, error = null) }
 
-            // 实际项目中清除应用缓存
-            // context.cacheDir.deleteRecursively()
+            try {
+                // 实际项目中清除应用缓存
+                // context.cacheDir.deleteRecursively()
 
-            kotlinx.coroutines.delay(500)
+                kotlinx.coroutines.delay(500)
 
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    successMessage = "缓存已清除"
-                )
+                Timber.d("缓存清除成功")
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = null,
+                        successMessage = "缓存已清除"
+                    )
+                }
+
+                kotlinx.coroutines.delay(2000)
+                _uiState.update { it.copy(successMessage = null) }
+            } catch (e: Exception) {
+                Timber.e(e, "清除缓存失败")
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = "清除缓存失败: ${e.message}"
+                    )
+                }
             }
-
-            kotlinx.coroutines.delay(2000)
-            _uiState.update { it.copy(successMessage = null) }
         }
     }
 
@@ -364,21 +428,33 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      */
     fun exportChatHistory() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, error = null) }
 
-            // 实际项目中导出聊天记录到文件
+            try {
+                // 实际项目中导出聊天记录到文件
 
-            kotlinx.coroutines.delay(1000)
+                kotlinx.coroutines.delay(1000)
 
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    successMessage = "聊天记录已导出"
-                )
+                Timber.d("聊天记录导出成功")
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = null,
+                        successMessage = "聊天记录已导出"
+                    )
+                }
+
+                kotlinx.coroutines.delay(2000)
+                _uiState.update { it.copy(successMessage = null) }
+            } catch (e: Exception) {
+                Timber.e(e, "导出聊天记录失败")
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = "导出失败: ${e.message}"
+                    )
+                }
             }
-
-            kotlinx.coroutines.delay(2000)
-            _uiState.update { it.copy(successMessage = null) }
         }
     }
 
@@ -387,10 +463,16 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      */
     fun resetAllSettings() {
         viewModelScope.launch {
-            _uiState.update {
-                SettingsUiState() // 重置为默认值
+            try {
+                _uiState.update {
+                    SettingsUiState() // 重置为默认值
+                }
+                Timber.d("设置已重置为默认值")
+                saveSettings()
+            } catch (e: Exception) {
+                Timber.e(e, "重置设置失败")
+                _uiState.update { it.copy(error = "重置设置失败: ${e.message}") }
             }
-            saveSettings()
         }
     }
 
@@ -398,6 +480,7 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      * 清除错误
      */
     fun clearError() {
+        Timber.d("清除错误状态")
         _uiState.update { it.copy(error = null) }
     }
 
@@ -405,6 +488,7 @@ class SettingsViewModel @Inject constructor() : ViewModel() {
      * 清除成功消息
      */
     fun clearSuccessMessage() {
+        Timber.d("清除成功消息")
         _uiState.update { it.copy(successMessage = null) }
     }
 }

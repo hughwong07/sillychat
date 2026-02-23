@@ -12,6 +12,7 @@ import com.xiaoshagua.xsgchat.data.repository.StreamState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -104,6 +105,7 @@ class ChatViewModel @Inject constructor(
         )
 
     init {
+        Timber.d("ChatViewModel 初始化")
         // 初始化默认代理
         initDefaultAgents()
         // 加载可用代理
@@ -117,7 +119,13 @@ class ChatViewModel @Inject constructor(
      */
     private fun initDefaultAgents() {
         viewModelScope.launch {
-            agentRepository.initDefaultAgents()
+            try {
+                agentRepository.initDefaultAgents()
+                Timber.d("默认代理初始化成功")
+            } catch (e: Exception) {
+                Timber.e(e, "初始化默认代理失败")
+                _uiState.update { it.copy(error = "初始化代理失败: ${e.message}") }
+            }
         }
     }
 
@@ -128,9 +136,11 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             agentRepository.getActiveAgents()
                 .catch { e ->
+                    Timber.e(e, "加载代理列表失败")
                     _uiState.update { it.copy(error = "加载代理失败: ${e.message}") }
                 }
                 .collect { agents ->
+                    Timber.d("加载了 ${agents.size} 个可用代理")
                     _uiState.update { state ->
                         state.copy(
                             availableAgents = agents,
@@ -147,12 +157,14 @@ class ChatViewModel @Inject constructor(
     private fun loadMessages() {
         viewModelScope.launch {
             val conversationId = _uiState.value.conversationId
+            Timber.d("开始加载消息，会话ID: $conversationId")
 
             messageRepository.getMessages(conversationId)
                 .onStart {
                     _uiState.update { it.copy(isLoading = true, error = null) }
                 }
                 .catch { e ->
+                    Timber.e(e, "加载消息失败，会话ID: $conversationId")
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -161,6 +173,7 @@ class ChatViewModel @Inject constructor(
                     }
                 }
                 .collect { messages ->
+                    Timber.d("加载了 ${messages.size} 条消息")
                     _uiState.update {
                         it.copy(
                             messages = messages,
@@ -184,39 +197,59 @@ class ChatViewModel @Inject constructor(
      */
     fun sendMessage() {
         val text = _uiState.value.inputText.trim()
-        if (text.isEmpty() || _uiState.value.isSending) return
+        if (text.isEmpty() || _uiState.value.isSending) {
+            Timber.w("发送消息被取消: 文本为空或正在发送中")
+            return
+        }
+
+        val agentId = _uiState.value.selectedAgent?.id
+        val conversationId = _uiState.value.conversationId
+        Timber.d("开始发送消息，会话ID: $conversationId, 代理ID: $agentId")
 
         viewModelScope.launch {
             _uiState.update { it.copy(isSending = true, error = null) }
             _sendMessageState.value = SendMessageState.Sending
 
-            val result = messageRepository.sendMessage(
-                content = text,
-                conversationId = _uiState.value.conversationId,
-                agentId = _uiState.value.selectedAgent?.id
-            )
+            try {
+                val result = messageRepository.sendMessage(
+                    content = text,
+                    conversationId = conversationId,
+                    agentId = agentId
+                )
 
-            result.fold(
-                onSuccess = { message ->
-                    _uiState.update {
-                        it.copy(
-                            inputText = "",
-                            isSending = false,
-                            error = null
-                        )
+                result.fold(
+                    onSuccess = { message ->
+                        Timber.d("消息发送成功: ${message.id}")
+                        _uiState.update {
+                            it.copy(
+                                inputText = "",
+                                isSending = false,
+                                error = null
+                            )
+                        }
+                        _sendMessageState.value = SendMessageState.Success(message)
+                    },
+                    onFailure = { error ->
+                        Timber.e(error, "消息发送失败")
+                        _uiState.update {
+                            it.copy(
+                                isSending = false,
+                                error = "发送失败: ${error.message}"
+                            )
+                        }
+                        _sendMessageState.value = SendMessageState.Error(error.message ?: "发送失败")
                     }
-                    _sendMessageState.value = SendMessageState.Success(message)
-                },
-                onFailure = { error ->
-                    _uiState.update {
-                        it.copy(
-                            isSending = false,
-                            error = "发送失败: ${error.message}"
-                        )
-                    }
-                    _sendMessageState.value = SendMessageState.Error(error.message ?: "发送失败")
+                )
+            } catch (e: Exception) {
+                Timber.e(e, "发送消息时发生异常")
+                _uiState.update {
+                    it.copy(
+                        isSending = false,
+                        error = "发送失败: ${e.message}"
+                    )
                 }
-            )
+                _sendMessageState.value = SendMessageState.Error(e.message ?: "发送失败")
+            }
 
             // 重置发送状态
             kotlinx.coroutines.delay(100)
@@ -229,43 +262,64 @@ class ChatViewModel @Inject constructor(
      */
     fun sendMessageStream() {
         val text = _uiState.value.inputText.trim()
-        if (text.isEmpty() || _uiState.value.isSending) return
+        if (text.isEmpty() || _uiState.value.isSending) {
+            Timber.w("流式发送消息被取消: 文本为空或正在发送中")
+            return
+        }
+
+        val agentId = _uiState.value.selectedAgent?.id
+        val conversationId = _uiState.value.conversationId
+        Timber.d("开始流式发送消息，会话ID: $conversationId, 代理ID: $agentId")
 
         viewModelScope.launch {
             _uiState.update { it.copy(isSending = true, error = null, streamingContent = "") }
 
-            messageRepository.sendMessageStream(
-                content = text,
-                conversationId = _uiState.value.conversationId,
-                agentId = _uiState.value.selectedAgent?.id
-            ).collect { state ->
-                when (state) {
-                    is StreamState.Sending -> {
-                        _uiState.update { it.copy(isSending = true) }
-                    }
-                    is StreamState.UserMessageSent -> {
-                        _uiState.update { it.copy(inputText = "") }
-                    }
-                    is StreamState.Chunk -> {
-                        _uiState.update { it.copy(streamingContent = state.fullContent) }
-                    }
-                    is StreamState.Completed -> {
-                        _uiState.update {
-                            it.copy(
-                                isSending = false,
-                                streamingContent = ""
-                            )
+            try {
+                messageRepository.sendMessageStream(
+                    content = text,
+                    conversationId = conversationId,
+                    agentId = agentId
+                ).collect { state ->
+                    when (state) {
+                        is StreamState.Sending -> {
+                            _uiState.update { it.copy(isSending = true) }
+                        }
+                        is StreamState.UserMessageSent -> {
+                            _uiState.update { it.copy(inputText = "") }
+                            Timber.d("用户消息已发送")
+                        }
+                        is StreamState.Chunk -> {
+                            _uiState.update { it.copy(streamingContent = state.fullContent) }
+                        }
+                        is StreamState.Completed -> {
+                            Timber.d("流式响应完成")
+                            _uiState.update {
+                                it.copy(
+                                    isSending = false,
+                                    streamingContent = ""
+                                )
+                            }
+                        }
+                        is StreamState.Error -> {
+                            Timber.e("流式响应错误: ${state.error}")
+                            _uiState.update {
+                                it.copy(
+                                    isSending = false,
+                                    error = state.error,
+                                    streamingContent = ""
+                                )
+                            }
                         }
                     }
-                    is StreamState.Error -> {
-                        _uiState.update {
-                            it.copy(
-                                isSending = false,
-                                error = state.error,
-                                streamingContent = ""
-                            )
-                        }
-                    }
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "流式发送消息时发生异常")
+                _uiState.update {
+                    it.copy(
+                        isSending = false,
+                        error = "发送失败: ${e.message}",
+                        streamingContent = ""
+                    )
                 }
             }
         }
@@ -275,6 +329,7 @@ class ChatViewModel @Inject constructor(
      * 选择代理
      */
     fun selectAgent(agent: Agent) {
+        Timber.d("选择代理: ${agent.id} - ${agent.name}")
         _uiState.update { it.copy(selectedAgent = agent) }
     }
 
@@ -282,8 +337,12 @@ class ChatViewModel @Inject constructor(
      * 切换会话
      */
     fun switchConversation(conversationId: String) {
-        if (conversationId == _uiState.value.conversationId) return
+        if (conversationId == _uiState.value.conversationId) {
+            Timber.w("切换会话被取消: 目标会话与当前会话相同")
+            return
+        }
 
+        Timber.d("切换会话: $conversationId")
         _uiState.update {
             it.copy(
                 conversationId = conversationId,
@@ -299,7 +358,13 @@ class ChatViewModel @Inject constructor(
      */
     fun deleteMessage(messageId: String, softDelete: Boolean = true) {
         viewModelScope.launch {
-            messageRepository.deleteMessage(messageId, softDelete)
+            try {
+                messageRepository.deleteMessage(messageId, softDelete)
+                Timber.d("消息删除成功: $messageId")
+            } catch (e: Exception) {
+                Timber.e(e, "删除消息失败: $messageId")
+                _uiState.update { it.copy(error = "删除消息失败: ${e.message}") }
+            }
         }
     }
 
@@ -308,7 +373,13 @@ class ChatViewModel @Inject constructor(
      */
     fun clearConversation() {
         viewModelScope.launch {
-            messageRepository.clearConversation(_uiState.value.conversationId)
+            try {
+                messageRepository.clearConversation(_uiState.value.conversationId)
+                Timber.d("会话清除成功: ${_uiState.value.conversationId}")
+            } catch (e: Exception) {
+                Timber.e(e, "清除会话失败: ${_uiState.value.conversationId}")
+                _uiState.update { it.copy(error = "清除会话失败: ${e.message}") }
+            }
         }
     }
 
@@ -316,6 +387,7 @@ class ChatViewModel @Inject constructor(
      * 清除错误
      */
     fun clearError() {
+        Timber.d("清除错误状态")
         _uiState.update { it.copy(error = null) }
     }
 
@@ -324,7 +396,13 @@ class ChatViewModel @Inject constructor(
      */
     fun retryFailedMessages() {
         viewModelScope.launch {
-            messageRepository.syncPendingMessages()
+            try {
+                messageRepository.syncPendingMessages()
+                Timber.d("同步待发送消息成功")
+            } catch (e: Exception) {
+                Timber.e(e, "同步待发送消息失败")
+                _uiState.update { it.copy(error = "重试失败: ${e.message}") }
+            }
         }
     }
 

@@ -3,6 +3,53 @@
  */
 
 /**
+ * 格式化时间戳
+ * @param timestamp 时间戳（毫秒）
+ * @returns 格式化后的时间字符串
+ */
+export function formatTime(timestamp: number): string {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+
+  // 今天
+  if (date.toDateString() === now.toDateString()) {
+    return date.toLocaleTimeString('zh-CN', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  // 昨天
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) {
+    return '昨天';
+  }
+
+  // 一周内
+  if (diff < 7 * 24 * 60 * 60 * 1000) {
+    const days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    return days[date.getDay()];
+  }
+
+  // 今年
+  if (date.getFullYear() === now.getFullYear()) {
+    return date.toLocaleDateString('zh-CN', {
+      month: 'short',
+      day: 'numeric',
+    });
+  }
+
+  // 更早
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+/**
  * 截断文本，超过长度显示省略号
  * @param text 原文本
  * @param maxLength 最大长度

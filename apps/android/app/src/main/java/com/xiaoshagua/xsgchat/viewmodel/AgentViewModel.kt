@@ -9,6 +9,7 @@ import com.xiaoshagua.xsgchat.data.repository.AgentRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -93,6 +94,7 @@ class AgentViewModel @Inject constructor(
     val actionResult: SharedFlow<AgentActionResult> = _actionResult.asSharedFlow()
 
     init {
+        Timber.d("AgentViewModel 初始化")
         loadAgents()
     }
 
@@ -106,6 +108,7 @@ class AgentViewModel @Inject constructor(
                     _uiState.update { it.copy(isLoading = true, error = null) }
                 }
                 .catch { e ->
+                    Timber.e(e, "加载代理列表失败")
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -114,6 +117,7 @@ class AgentViewModel @Inject constructor(
                     }
                 }
                 .collect { agents ->
+                    Timber.d("加载了 ${agents.size} 个代理")
                     _uiState.update {
                         it.copy(
                             agents = agents,
@@ -129,6 +133,7 @@ class AgentViewModel @Inject constructor(
      * 选择代理
      */
     fun selectAgent(agent: Agent) {
+        Timber.d("选择代理: ${agent.id} - ${agent.name}")
         _uiState.update { it.copy(selectedAgent = agent) }
     }
 
@@ -136,6 +141,7 @@ class AgentViewModel @Inject constructor(
      * 清除选中
      */
     fun clearSelection() {
+        Timber.d("清除代理选择")
         _uiState.update { it.copy(selectedAgent = null) }
     }
 
@@ -156,12 +162,15 @@ class AgentViewModel @Inject constructor(
      * 搜索代理
      */
     private fun searchAgents(query: String) {
+        Timber.d("搜索代理: $query")
         viewModelScope.launch {
             agentRepository.searchAgents(query)
                 .catch { e ->
+                    Timber.e(e, "搜索代理失败: $query")
                     _uiState.update { it.copy(error = "搜索失败: ${e.message}") }
                 }
                 .collect { agents ->
+                    Timber.d("搜索到 ${agents.size} 个代理")
                     _uiState.update { it.copy(agents = agents) }
                 }
         }
@@ -171,6 +180,7 @@ class AgentViewModel @Inject constructor(
      * 按类别筛选
      */
     fun filterByCategory(category: AgentCategory?) {
+        Timber.d("按类别筛选代理: ${category?.name ?: "全部"}")
         _uiState.update { it.copy(selectedCategory = category) }
 
         if (category == null) {
@@ -179,9 +189,11 @@ class AgentViewModel @Inject constructor(
             viewModelScope.launch {
                 agentRepository.getAgentsByCategory(category)
                     .catch { e ->
+                        Timber.e(e, "按类别筛选代理失败: ${category.name}")
                         _uiState.update { it.copy(error = "筛选失败: ${e.message}") }
                     }
                     .collect { agents ->
+                        Timber.d("类别 ${category.name} 筛选到 ${agents.size} 个代理")
                         _uiState.update { it.copy(agents = agents) }
                     }
             }
@@ -192,21 +204,29 @@ class AgentViewModel @Inject constructor(
      * 创建代理
      */
     fun createAgent(agent: Agent) {
+        Timber.d("开始创建代理: ${agent.name}")
         viewModelScope.launch {
             _actionResult.emit(AgentActionResult.Loading)
 
-            agentRepository.createAgent(agent)
-                .fold(
-                    onSuccess = {
-                        _actionResult.emit(AgentActionResult.Success("代理创建成功"))
-                        _uiState.update { it.copy(showCreateDialog = false) }
-                    },
-                    onFailure = { error ->
-                        _actionResult.emit(
-                            AgentActionResult.Error("创建失败: ${error.message}")
-                        )
-                    }
-                )
+            try {
+                agentRepository.createAgent(agent)
+                    .fold(
+                        onSuccess = {
+                            Timber.d("代理创建成功: ${agent.id}")
+                            _actionResult.emit(AgentActionResult.Success("代理创建成功"))
+                            _uiState.update { it.copy(showCreateDialog = false) }
+                        },
+                        onFailure = { error ->
+                            Timber.e(error, "创建代理失败: ${agent.name}")
+                            _actionResult.emit(
+                                AgentActionResult.Error("创建失败: ${error.message}")
+                            )
+                        }
+                    )
+            } catch (e: Exception) {
+                Timber.e(e, "创建代理时发生异常: ${agent.name}")
+                _actionResult.emit(AgentActionResult.Error("创建失败: ${e.message}"))
+            }
         }
     }
 
@@ -214,26 +234,34 @@ class AgentViewModel @Inject constructor(
      * 更新代理
      */
     fun updateAgent(agent: Agent) {
+        Timber.d("开始更新代理: ${agent.id} - ${agent.name}")
         viewModelScope.launch {
             _actionResult.emit(AgentActionResult.Loading)
 
-            agentRepository.updateAgent(agent)
-                .fold(
-                    onSuccess = {
-                        _actionResult.emit(AgentActionResult.Success("代理更新成功"))
-                        _uiState.update {
-                            it.copy(
-                                showEditDialog = false,
-                                selectedAgent = null
+            try {
+                agentRepository.updateAgent(agent)
+                    .fold(
+                        onSuccess = {
+                            Timber.d("代理更新成功: ${agent.id}")
+                            _actionResult.emit(AgentActionResult.Success("代理更新成功"))
+                            _uiState.update {
+                                it.copy(
+                                    showEditDialog = false,
+                                    selectedAgent = null
+                                )
+                            }
+                        },
+                        onFailure = { error ->
+                            Timber.e(error, "更新代理失败: ${agent.id}")
+                            _actionResult.emit(
+                                AgentActionResult.Error("更新失败: ${error.message}")
                             )
                         }
-                    },
-                    onFailure = { error ->
-                        _actionResult.emit(
-                            AgentActionResult.Error("更新失败: ${error.message}")
-                        )
-                    }
-                )
+                    )
+            } catch (e: Exception) {
+                Timber.e(e, "更新代理时发生异常: ${agent.id}")
+                _actionResult.emit(AgentActionResult.Error("更新失败: ${e.message}"))
+            }
         }
     }
 
@@ -241,26 +269,34 @@ class AgentViewModel @Inject constructor(
      * 删除代理
      */
     fun deleteAgent(agentId: String) {
+        Timber.d("开始删除代理: $agentId")
         viewModelScope.launch {
             _actionResult.emit(AgentActionResult.Loading)
 
-            agentRepository.deleteAgent(agentId)
-                .fold(
-                    onSuccess = {
-                        _actionResult.emit(AgentActionResult.Success("代理删除成功"))
-                        _uiState.update {
-                            it.copy(
-                                showDeleteConfirmDialog = false,
-                                selectedAgent = null
+            try {
+                agentRepository.deleteAgent(agentId)
+                    .fold(
+                        onSuccess = {
+                            Timber.d("代理删除成功: $agentId")
+                            _actionResult.emit(AgentActionResult.Success("代理删除成功"))
+                            _uiState.update {
+                                it.copy(
+                                    showDeleteConfirmDialog = false,
+                                    selectedAgent = null
+                                )
+                            }
+                        },
+                        onFailure = { error ->
+                            Timber.e(error, "删除代理失败: $agentId")
+                            _actionResult.emit(
+                                AgentActionResult.Error("删除失败: ${error.message}")
                             )
                         }
-                    },
-                    onFailure = { error ->
-                        _actionResult.emit(
-                            AgentActionResult.Error("删除失败: ${error.message}")
-                        )
-                    }
-                )
+                    )
+            } catch (e: Exception) {
+                Timber.e(e, "删除代理时发生异常: $agentId")
+                _actionResult.emit(AgentActionResult.Error("删除失败: ${e.message}"))
+            }
         }
     }
 
@@ -268,18 +304,26 @@ class AgentViewModel @Inject constructor(
      * 设置默认代理
      */
     fun setDefaultAgent(agentId: String) {
+        Timber.d("设置默认代理: $agentId")
         viewModelScope.launch {
-            agentRepository.setDefaultAgent(agentId)
-                .fold(
-                    onSuccess = {
-                        _actionResult.emit(AgentActionResult.Success("默认代理设置成功"))
-                    },
-                    onFailure = { error ->
-                        _actionResult.emit(
-                            AgentActionResult.Error("设置失败: ${error.message}")
-                        )
-                    }
-                )
+            try {
+                agentRepository.setDefaultAgent(agentId)
+                    .fold(
+                        onSuccess = {
+                            Timber.d("默认代理设置成功: $agentId")
+                            _actionResult.emit(AgentActionResult.Success("默认代理设置成功"))
+                        },
+                        onFailure = { error ->
+                            Timber.e(error, "设置默认代理失败: $agentId")
+                            _actionResult.emit(
+                                AgentActionResult.Error("设置失败: ${error.message}")
+                            )
+                        }
+                    )
+            } catch (e: Exception) {
+                Timber.e(e, "设置默认代理时发生异常: $agentId")
+                _actionResult.emit(AgentActionResult.Error("设置失败: ${e.message}"))
+            }
         }
     }
 
@@ -287,19 +331,27 @@ class AgentViewModel @Inject constructor(
      * 切换代理激活状态
      */
     fun toggleAgentActive(agentId: String, isActive: Boolean) {
+        Timber.d("切换代理激活状态: $agentId -> $isActive")
         viewModelScope.launch {
-            agentRepository.toggleAgentActive(agentId, isActive)
-                .fold(
-                    onSuccess = {
-                        val status = if (isActive) "激活" else "停用"
-                        _actionResult.emit(AgentActionResult.Success("代理已$status"))
-                    },
-                    onFailure = { error ->
-                        _actionResult.emit(
-                            AgentActionResult.Error("操作失败: ${error.message}")
-                        )
-                    }
-                )
+            try {
+                agentRepository.toggleAgentActive(agentId, isActive)
+                    .fold(
+                        onSuccess = {
+                            val status = if (isActive) "激活" else "停用"
+                            Timber.d("代理已$status: $agentId")
+                            _actionResult.emit(AgentActionResult.Success("代理已$status"))
+                        },
+                        onFailure = { error ->
+                            Timber.e(error, "切换代理状态失败: $agentId")
+                            _actionResult.emit(
+                                AgentActionResult.Error("操作失败: ${error.message}")
+                            )
+                        }
+                    )
+            } catch (e: Exception) {
+                Timber.e(e, "切换代理状态时发生异常: $agentId")
+                _actionResult.emit(AgentActionResult.Error("操作失败: ${e.message}"))
+            }
         }
     }
 
@@ -307,25 +359,34 @@ class AgentViewModel @Inject constructor(
      * 从服务器同步代理
      */
     fun syncAgentsFromServer() {
+        Timber.d("开始从服务器同步代理")
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             _actionResult.emit(AgentActionResult.Loading)
 
-            agentRepository.syncAgentsFromServer()
-                .fold(
-                    onSuccess = { agents ->
-                        _actionResult.emit(
-                            AgentActionResult.Success("同步成功，共 ${agents.size} 个代理")
-                        )
-                        _uiState.update { it.copy(isLoading = false) }
-                    },
-                    onFailure = { error ->
-                        _actionResult.emit(
-                            AgentActionResult.Error("同步失败: ${error.message}")
-                        )
-                        _uiState.update { it.copy(isLoading = false) }
-                    }
-                )
+            try {
+                agentRepository.syncAgentsFromServer()
+                    .fold(
+                        onSuccess = { agents ->
+                            Timber.d("同步成功，共 ${agents.size} 个代理")
+                            _actionResult.emit(
+                                AgentActionResult.Success("同步成功，共 ${agents.size} 个代理")
+                            )
+                            _uiState.update { it.copy(isLoading = false) }
+                        },
+                        onFailure = { error ->
+                            Timber.e(error, "从服务器同步代理失败")
+                            _actionResult.emit(
+                                AgentActionResult.Error("同步失败: ${error.message}")
+                            )
+                            _uiState.update { it.copy(isLoading = false) }
+                        }
+                    )
+            } catch (e: Exception) {
+                Timber.e(e, "同步代理时发生异常")
+                _actionResult.emit(AgentActionResult.Error("同步失败: ${e.message}"))
+                _uiState.update { it.copy(isLoading = false) }
+            }
         }
     }
 
@@ -333,6 +394,7 @@ class AgentViewModel @Inject constructor(
      * 显示创建对话框
      */
     fun showCreateDialog() {
+        Timber.d("显示创建代理对话框")
         _uiState.update { it.copy(showCreateDialog = true) }
     }
 
@@ -340,6 +402,7 @@ class AgentViewModel @Inject constructor(
      * 隐藏创建对话框
      */
     fun hideCreateDialog() {
+        Timber.d("隐藏创建代理对话框")
         _uiState.update { it.copy(showCreateDialog = false) }
     }
 
@@ -347,6 +410,7 @@ class AgentViewModel @Inject constructor(
      * 显示编辑对话框
      */
     fun showEditDialog() {
+        Timber.d("显示编辑代理对话框")
         _uiState.update { it.copy(showEditDialog = true) }
     }
 
@@ -354,6 +418,7 @@ class AgentViewModel @Inject constructor(
      * 隐藏编辑对话框
      */
     fun hideEditDialog() {
+        Timber.d("隐藏编辑代理对话框")
         _uiState.update { it.copy(showEditDialog = false) }
     }
 
@@ -361,6 +426,7 @@ class AgentViewModel @Inject constructor(
      * 显示删除确认对话框
      */
     fun showDeleteConfirmDialog() {
+        Timber.d("显示删除代理确认对话框")
         _uiState.update { it.copy(showDeleteConfirmDialog = true) }
     }
 
@@ -368,6 +434,7 @@ class AgentViewModel @Inject constructor(
      * 隐藏删除确认对话框
      */
     fun hideDeleteConfirmDialog() {
+        Timber.d("隐藏删除代理确认对话框")
         _uiState.update { it.copy(showDeleteConfirmDialog = false) }
     }
 
@@ -375,6 +442,7 @@ class AgentViewModel @Inject constructor(
      * 清除错误
      */
     fun clearError() {
+        Timber.d("清除错误状态")
         _uiState.update { it.copy(error = null) }
     }
 
