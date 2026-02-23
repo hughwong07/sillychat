@@ -116,6 +116,15 @@ export async function loadAppConfig(): Promise<ConfigLoadResult<AppConfig>> {
     errors.push(`Security: ${securityResult.error}`);
   }
 
+  // 如果关键配置（user, storage, sync, security）不存在，返回失败
+  if (!userResult.data || !storageResult.data || !syncResult.data || !securityResult.data) {
+    return {
+      success: false,
+      error: 'Missing required config files',
+      isDefault: true,
+    };
+  }
+
   if (errors.length > 0) {
     return {
       success: false,
@@ -130,16 +139,16 @@ export async function loadAppConfig(): Promise<ConfigLoadResult<AppConfig>> {
       updatedAt: new Date().toISOString(),
       migrationHistory: [],
     },
-    user: userResult.data!,
+    user: userResult.data,
     agents: agentsResult.data || [],
-    storage: storageResult.data!,
-    sync: syncResult.data!,
-    security: securityResult.data!,
+    storage: storageResult.data,
+    sync: syncResult.data,
+    security: securityResult.data,
   };
 
   return {
     success: true,
     data: config,
-    isDefault: userResult.isDefault,
+    isDefault: false,
   };
 }

@@ -37,7 +37,7 @@ describe("ConfigManager", () => {
     const manager2 = getConfigManager();
     expect(manager).toBe(manager2);
   });
-  it.skip("should get user settings", () => {
+  it("should get user settings", () => {
     const settings = manager.getUserSettings();
     expect(settings).toBeDefined();
     expect(settings.ui).toBeDefined();
