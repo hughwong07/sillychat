@@ -9,6 +9,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
+        {!collapsed && (
+          <button className="new-chat-btn">
+            <span>+</span>
+            <span>新建对话</span>
+          </button>
+        )}
         <button className="toggle-btn" onClick={onToggle}>
           {collapsed ? '→' : '←'}
         </button>

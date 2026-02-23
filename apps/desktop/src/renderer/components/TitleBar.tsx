@@ -12,6 +12,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onThemeChange, currentTheme 
   return (
     <div className="titlebar">
       <div className="titlebar-drag-region">
+        <div className="app-logo">傻</div>
         <span className="app-title">小傻瓜聊天工具</span>
       </div>
       <div className="titlebar-controls">

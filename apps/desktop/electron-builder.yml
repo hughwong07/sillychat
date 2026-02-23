@@ -1,0 +1,48 @@
+appId: com.xiaoshagua.chat
+productName: 小傻瓜聊天工具
+copyright: Copyright © 2026
+directories:
+  output: release
+  buildResources: assets
+files:
+  - dist/**/*
+  - assets/**/*
+  - package.json
+extraMetadata:
+  main: dist/main/index.js
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+        - arm64
+    - target: portable
+      arch:
+        - x64
+  icon: assets/icon.ico
+  publisherName: 小傻瓜团队
+  verifyUpdateCodeSignature: false
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  icon: assets/icon.icns
+  category: public.app-category.social-networking
+  darkModeSupport: true
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: 小傻瓜聊天工具
+  installerIcon: assets/icon.ico
+  uninstallerIcon: assets/icon.ico
+  installerHeaderIcon: assets/icon.ico
+portable:
+  artifactName: ${productName}-${version}-Portable.exe
+publish:
+  provider: github
+  owner: hughwong07
+  repo: sillychat

@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
 import { WindowManager } from './window-manager.js';
 import { IPCChannels } from '../common/channels.js';
+import { setupCoreIPC, initializeCore } from './core-integration.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,7 +27,15 @@ class XSGDesktopApp {
 
   private setupAppEvents(): void {
     // App ready
-    app.whenReady().then(() => {
+    app.whenReady().then(async () => {
+      // Initialize core modules
+      try {
+        await initializeCore();
+        console.log('[Main] Core modules initialized');
+      } catch (error) {
+        console.error('[Main] Core initialization failed:', error);
+      }
+
       this.windowManager.createMainWindow();
 
       app.on('activate', () => {
@@ -100,6 +109,9 @@ class XSGDesktopApp {
         version: process.getSystemVersion(),
       };
     });
+
+    // Core integration IPC
+    setupCoreIPC();
   }
 
   private setupSecurity(): void {
