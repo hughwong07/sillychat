@@ -210,22 +210,29 @@ export class StorageManager extends EventEmitter implements IStorageManager {
     return this.db.getMessages(conversationId, options);
   }
 
-  async deleteMessage(id: string): Promise<boolean> {
-    return this.db.deleteMessage(id);
+  async deleteMessage(id: string, conversationId?: string): Promise<boolean> {
+    return this.db.deleteMessage(id, conversationId);
   }
 
   // Stats
   async getStats(): Promise<StorageStats> {
     const blobStats = await this.blobPool.getStats();
-    const dbStats = fs.statSync(path.join(this.config.dataDir, 'database', 'silly.db'));
+    const dbPath = path.join(this.config.dataDir, 'database', 'silly.db');
+    let dbSize = 0;
+    try {
+      dbSize = fs.statSync(dbPath).size;
+    } catch {
+      // Database file doesn't exist yet
+      dbSize = 0;
+    }
 
     return {
-      totalSize: blobStats.totalSize + dbStats.size,
+      totalSize: blobStats.totalSize + dbSize,
       blobPoolSize: blobStats.totalSize,
       fileCount: blobStats.count,
       blobCount: blobStats.count,
       cacheSize: 0,
-      databaseSize: dbStats.size,
+      databaseSize: dbSize,
     };
   }
 }

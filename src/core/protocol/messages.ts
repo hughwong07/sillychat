@@ -557,6 +557,11 @@ export function createImageFileTransfer(
 
 // Utility Functions
 export function isMessageExpired(message: XSGMessage, maxAgeMs: number = 86400000): boolean {
+  // If message has explicit expiresAt, use that
+  if (message.expiresAt) {
+    return Date.now() > message.expiresAt;
+  }
+  // Otherwise use timestamp + maxAge
   return Date.now() - message.timestamp > maxAgeMs;
 }
 

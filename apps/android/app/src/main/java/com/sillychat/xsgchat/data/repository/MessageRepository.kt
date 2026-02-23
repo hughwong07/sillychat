@@ -1,5 +1,8 @@
 package com.sillychat.app.data.repository
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.sillychat.app.data.local.MessageDao
 import com.sillychat.app.data.model.*
 import com.sillychat.app.data.remote.ApiService
@@ -14,31 +17,78 @@ import javax.inject.Singleton
 /**
  * 消息仓库
  * 负责消息的本地存储和远程同步
+ * 优化：添加分页加载、缓存策略和内存管理
  */
 @Singleton
 class MessageRepository @Inject constructor(
     private val messageDao: MessageDao,
     private val apiService: ApiService
 ) {
+    companion object {
+        // 分页配置
+        const val PAGE_SIZE = 20
+        const val PREFETCH_DISTANCE = 5
+        const val MAX_MESSAGE_CACHE = 100
+    }
+    /**
+     * 获取消息分页流
+     * 使用Paging 3实现高效分页加载
+     */
+    fun getMessagesPaged(conversationId: String): Flow<PagingData<Message>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = PAGE_SIZE,
+                prefetchDistance = PREFETCH_DISTANCE,
+                enablePlaceholders = false,
+                initialLoadSize = PAGE_SIZE * 2
+            ),
+            pagingSourceFactory = {
+                messageDao.getMessagesByConversationPaged(conversationId)
+            }
+        ).flow
+    }
+
     /**
      * 获取会话消息流
+     * 优化：限制内存中缓存的消息数量
      */
     fun getMessages(conversationId: String): Flow<List<Message>> {
         return messageDao.getByConversation(conversationId)
             .map { messages ->
                 // 过滤掉已删除的消息并按时间排序
-                messages.filter { !it.isDeleted }
+                val filtered = messages.filter { !it.isDeleted }
+                // 限制内存中缓存的消息数量，避免OOM
+                if (filtered.size > MAX_MESSAGE_CACHE) {
+                    filtered.takeLast(MAX_MESSAGE_CACHE)
+                } else {
+                    filtered
+                }
             }
             .flowOn(Dispatchers.IO)
     }
 
     /**
      * 获取最近消息
+     * 优化：使用分页加载更多历史消息
      */
-    suspend fun getRecentMessages(conversationId: String, limit: Int = 50): List<Message> {
+    suspend fun getRecentMessages(conversationId: String, limit: Int = PAGE_SIZE): List<Message> {
         return withContext(Dispatchers.IO) {
             messageDao.getRecentMessages(conversationId, limit)
                 .sortedBy { it.timestamp }
+        }
+    }
+
+    /**
+     * 加载更多历史消息
+     * 优化：基于时间戳的分页加载
+     */
+    suspend fun loadMoreMessages(
+        conversationId: String,
+        before: Long,
+        limit: Int = PAGE_SIZE
+    ): List<Message> {
+        return withContext(Dispatchers.IO) {
+            messageDao.getMessagesBefore(conversationId, before, limit)
         }
     }
 
@@ -267,6 +317,16 @@ class MessageRepository @Inject constructor(
     suspend fun clearConversation(conversationId: String) {
         withContext(Dispatchers.IO) {
             messageDao.deleteByConversation(conversationId)
+        }
+    }
+
+    /**
+     * 清理旧消息
+     * 优化：释放存储空间，保留最近N条消息
+     */
+    suspend fun cleanupOldMessages(conversationId: String, keepCount: Int = 1000) {
+        withContext(Dispatchers.IO) {
+            messageDao.cleanupOldMessages(conversationId, keepCount)
         }
     }
 

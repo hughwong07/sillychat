@@ -6,7 +6,9 @@
   "author": "SillyChat Team",
   "license": "MIT",
   "dependencies": {
-    "@ohos/axios": "^2.2.0"
+    "@ohos/axios": "^2.2.0",
+    "@ohos/crypto-js": "^2.0.3",
+    "@ohos/dataorm": "^2.0.0"
   },
   "devDependencies": {},
   "dynamicDependencies": {}

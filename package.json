@@ -38,21 +38,25 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/express": "^5.0.0",
+    "@types/express": "^5.0.2",
     "@types/mime-types": "^2.1.4",
-    "@types/ws": "^8.5.14",
-    "@typescript-eslint/eslint-plugin": "^8.24.1",
-    "@typescript-eslint/parser": "^8.24.1",
-    "eslint": "^9.21.0",
-    "eslint-config-prettier": "^10.0.1",
+    "@types/ws": "^8.18.1",
+    "@typescript-eslint/eslint-plugin": "^8.31.1",
+    "@typescript-eslint/parser": "^8.31.1",
+    "eslint": "^9.25.1",
+    "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-import": "^2.31.0",
     "husky": "^9.1.7",
-    "lint-staged": "^15.4.3",
-    "msw": "^2.12.10",
-    "prettier": "^3.5.2",
+    "lint-staged": "^15.5.1",
+    "msw": "^2.7.5",
+    "prettier": "^3.5.3",
     "tsx": "^4.19.3",
-    "typescript": "^5.7.3",
-    "vitest": "^3.0.7"
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.2"
+  },
+  "overrides": {
+    "minimatch": "^10.0.1",
+    "glob": "^11.0.1"
   },
   "lint-staged": {
     "*.ts": [

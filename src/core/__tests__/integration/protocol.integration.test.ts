@@ -528,7 +528,7 @@ describe('Protocol Layer Integration', () => {
         args: { code: 'print("hello")' },
       });
 
-      const message = createChatMessage(sender, target, skillContent, auth);
+      const message = createChatMessage({ sender, target, content: skillContent, auth });
 
       expect(message.content.type).toBe(ContentType.SKILL);
       expect(message.content.data).toHaveProperty('skillId', 'skill-123');
