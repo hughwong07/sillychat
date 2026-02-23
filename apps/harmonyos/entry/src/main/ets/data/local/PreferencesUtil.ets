@@ -266,6 +266,10 @@ export class PrefKeys {
   static readonly AGENTS_SYNCED = 'agents_synced';
   static readonly LAST_SYNC_TIME = 'last_sync_time';
 
+  // 同步设置
+  static readonly AUTO_SYNC = 'auto_sync';
+  static readonly SYNC_INTERVAL = 'sync_interval';
+
   // 应用信息
   static readonly FIRST_LAUNCH = 'first_launch';
   static readonly APP_VERSION = 'app_version';

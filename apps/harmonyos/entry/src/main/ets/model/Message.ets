@@ -8,6 +8,16 @@ export enum MessageRole {
 }
 
 /**
+ * 同步状态枚举
+ */
+export enum SyncStatus {
+  PENDING = 'pending',
+  SYNCING = 'syncing',
+  SYNCED = 'synced',
+  FAILED = 'failed'
+}
+
+/**
  * 消息模型
  */
 export class Message {
@@ -17,7 +27,12 @@ export class Message {
   conversationId: string;
   timestamp: number;
   isStreaming: boolean;
+  syncStatus: SyncStatus;
+  senderName?: string;
+  senderAvatar?: string;
   attachments: Attachment[];
+  replyTo?: string;
+  metadata?: Record<string, any>;
 
   constructor(
     content: string,
@@ -31,11 +46,50 @@ export class Message {
     this.conversationId = conversationId;
     this.timestamp = Date.now();
     this.isStreaming = false;
+    this.syncStatus = SyncStatus.PENDING;
     this.attachments = [];
   }
 
   private generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
+
+  /**
+   * 设置发送者信息
+   */
+  setSender(name: string, avatar?: string): void {
+    this.senderName = name;
+    if (avatar) {
+      this.senderAvatar = avatar;
+    }
+  }
+
+  /**
+   * 添加附件
+   */
+  addAttachment(attachment: Attachment): void {
+    this.attachments.push(attachment);
+  }
+
+  /**
+   * 标记为已同步
+   */
+  markAsSynced(): void {
+    this.syncStatus = SyncStatus.SYNCED;
+  }
+
+  /**
+   * 标记为同步失败
+   */
+  markAsFailed(): void {
+    this.syncStatus = SyncStatus.FAILED;
+  }
+
+  /**
+   * 标记为同步中
+   */
+  markAsSyncing(): void {
+    this.syncStatus = SyncStatus.SYNCING;
   }
 }
 
@@ -48,6 +102,7 @@ export class Attachment {
   url: string;
   name: string;
   size: number;
+  mimeType?: string;
 
   constructor(type: AttachmentType, url: string, name: string, size: number) {
     this.id = Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -76,4 +131,24 @@ export enum SendMessageState {
   SENDING = 'sending',
   SUCCESS = 'success',
   ERROR = 'error'
+}
+
+/**
+ * 消息查询过滤器
+ */
+export interface MessageFilter {
+  role?: MessageRole;
+  startTime?: number;
+  endTime?: number;
+  searchQuery?: string;
+  hasAttachments?: boolean;
+}
+
+/**
+ * 消息分页结果
+ */
+export interface MessagePage {
+  messages: Message[];
+  hasMore: boolean;
+  totalCount: number;
 }

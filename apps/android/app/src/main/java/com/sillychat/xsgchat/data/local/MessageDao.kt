@@ -184,4 +184,15 @@ interface MessageDao {
      */
     @Query("SELECT COUNT(*) FROM messages WHERE isDeleted = 0")
     suspend fun getTotalCount(): Int
+
+    /**
+     * 获取指定时间之前的消息（用于清理过期消息）
+     */
+    @Query("""
+        SELECT * FROM messages
+        WHERE timestamp < :timestamp
+        AND isDeleted = 0
+        ORDER BY timestamp ASC
+    """)
+    suspend fun getMessagesBefore(timestamp: Long): List<Message>
 }
