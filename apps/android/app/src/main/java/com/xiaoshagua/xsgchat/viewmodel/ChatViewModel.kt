@@ -81,6 +81,15 @@ class ChatViewModel @Inject constructor(
     private val agentRepository: AgentRepository
 ) : ViewModel() {
 
+    companion object {
+        /** 最大消息长度 */
+        const val MAX_MESSAGE_LENGTH = 4000
+        /** 最大附件数量 */
+        const val MAX_ATTACHMENTS = 10
+        /** 危险字符过滤正则 */
+        private val DANGEROUS_CHARS_REGEX = Regex("[<>\"'&\\x00-\\x1F]")
+    }
+
     /**
      * UI状态
      */
@@ -187,9 +196,19 @@ class ChatViewModel @Inject constructor(
 
     /**
      * 输入文本变化
+     * 包含长度限制和危险字符过滤
      */
     fun onInputChange(text: String) {
-        _uiState.update { it.copy(inputText = text) }
+        // 限制长度
+        val truncated = text.take(MAX_MESSAGE_LENGTH)
+        // 过滤危险字符
+        val sanitized = truncated.replace(DANGEROUS_CHARS_REGEX, "")
+
+        if (truncated.length != text.length) {
+            Timber.w("输入文本超过最大长度限制: ${text.length} > $MAX_MESSAGE_LENGTH")
+        }
+
+        _uiState.update { it.copy(inputText = sanitized) }
     }
 
     /**
