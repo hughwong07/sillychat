@@ -1,6 +1,6 @@
 /**
  * File Organizer
- * 小傻瓜聊天工具 - 文件自动整理模块
+ * SillyChat - 文件自动整理模块
  */
 
 import * as fs from 'fs';

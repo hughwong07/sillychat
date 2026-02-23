@@ -87,7 +87,7 @@ export const MainTabNavigator: React.FC = () => {
         options={{
           title: '聊天',
           headerShown: true,
-          headerTitle: '小傻瓜聊天',
+          headerTitle: 'SillyChat',
         }}
       />
       <Tab.Screen

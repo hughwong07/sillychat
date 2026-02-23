@@ -24,7 +24,7 @@ export function createMacOSMenu(window: BrowserWindow, callbacks: MenuCallbacks 
       label: app.getName(),
       submenu: [
         {
-          label: '关于小傻瓜聊天工具',
+          label: '关于 SillyChat',
           role: 'about',
         },
         { type: 'separator' },
@@ -174,7 +174,7 @@ export function createMacOSMenu(window: BrowserWindow, callbacks: MenuCallbacks 
       label: '帮助',
       submenu: [
         {
-          label: '小傻瓜官网',
+          label: 'SillyChat 官网',
           click: async () => {
             await shell.openExternal('https://github.com/hughwong07/sillychat');
           },

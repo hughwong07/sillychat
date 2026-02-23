@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const require = createRequire(import.meta.url);
 
-class XSGDesktopApp {
+class SillyChatDesktopApp {
   private windowManager: WindowManager;
   private isQuitting = false;
 
@@ -162,7 +162,7 @@ class XSGDesktopApp {
   private setupSecurity(): void {
     // Additional security configurations
     app.setAboutPanelOptions({
-      applicationName: '小傻瓜聊天工具',
+      applicationName: 'SillyChat',
       applicationVersion: app.getVersion(),
       copyright: 'Copyright © 2026',
     });
@@ -170,4 +170,4 @@ class XSGDesktopApp {
 }
 
 // Initialize app
-new XSGDesktopApp();
+new SillyChatDesktopApp();

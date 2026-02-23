@@ -1,5 +1,5 @@
 /**
- * 小傻瓜聊天工具 - useLocalStorage Hook
+ * SillyChat - useLocalStorage Hook
  */
 
 import { useState, useEffect, useCallback } from 'react';

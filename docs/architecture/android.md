@@ -2,7 +2,7 @@
 
 ## 概述
 
-本文档描述小傻瓜聊天工具 Android 移动端的架构设计。
+本文档描述 SillyChat Android 移动端的架构设计。
 
 ## 技术选型
 
@@ -86,9 +86,9 @@ apps/mobile/
 
 ```
 apps/android/
-├── app/src/main/java/com/xiaoshagua/xsgchat/
+├── app/src/main/java/com/sillychat/app/
 │   ├── MainActivity.kt              # 主Activity
-│   ├── XSGChatApplication.kt        # 应用类
+│   ├── SillyChatApplication.kt        # 应用类
 │   ├── ui/
 │   │   ├── screens/                 # 屏幕
 │   │   │   ├── ChatScreen.kt

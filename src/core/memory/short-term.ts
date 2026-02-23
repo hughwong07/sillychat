@@ -1,6 +1,6 @@
 /**
  * Short Term Memory Manager
- * 小傻瓜聊天工具 - 短期记忆管理模块
+ * SillyChat - 短期记忆管理模块
  */
 
 import { randomUUID } from 'crypto';

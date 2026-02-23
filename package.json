@@ -1,7 +1,7 @@
 {
-  "name": "xiaoshagua-chat",
+  "name": "sillychat",
   "version": "1.0.0",
-  "description": "小傻瓜聊天工具 - AI原生聊天应用",
+  "description": "SillyChat - AI原生聊天应用",
   "main": "dist/index.js",
   "type": "module",
   "engines": {
@@ -66,6 +66,6 @@
     "multi-agent",
     "local-first"
   ],
-  "author": "小傻瓜团队",
+  "author": "SillyChat团队",
   "license": "MIT"
 }

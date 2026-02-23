@@ -5,7 +5,7 @@
 // ==================== 应用信息 ====================
 
 export const APP_INFO = {
-  name: '小傻瓜聊天工具',
+  name: 'SillyChat',
   nameEn: 'SillyChat',
   version: '1.0.0',
   buildNumber: '1',

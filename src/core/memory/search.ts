@@ -1,6 +1,6 @@
 /**
  * Memory Search Module
- * 小傻瓜聊天工具 - 语义搜索模块
+ * SillyChat - 语义搜索模块
  */
 
 import {

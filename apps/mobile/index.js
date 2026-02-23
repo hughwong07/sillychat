@@ -1,5 +1,5 @@
 /**
- * 小傻瓜聊天工具 - Android 移动端入口文件
+ * SillyChat - Android 移动端入口文件
  * @format
  */
 

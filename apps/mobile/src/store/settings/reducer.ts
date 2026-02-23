@@ -1,5 +1,5 @@
 /**
- * 小傻瓜聊天工具 - Settings Reducer
+ * SillyChat - Settings Reducer
  */
 
 export type Theme = 'light' | 'dark' | 'system';

@@ -1,6 +1,6 @@
 /**
  * Memory Indexer Module
- * 小傻瓜聊天工具 - 记忆索引器模块
+ * SillyChat - 记忆索引器模块
  * 
  * 负责记忆的重要性评估和自动归档
  */

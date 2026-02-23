@@ -1,6 +1,6 @@
 /**
  * Storage Manager
- * 小傻瓜聊天工具 - 存储管理器主类
+ * SillyChat - 存储管理器主类
  */
 
 import * as fs from 'fs';

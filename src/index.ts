@@ -1,5 +1,5 @@
 /**
- * XiaoShagua Chat - Core Module Exports
+ * SillyChat - Core Module Exports
  */
 
 // Re-export types without duplicates
@@ -49,4 +49,4 @@ export * from './core/memory/types.js';
 
 // Version
 export const VERSION = '1.0.0';
-export const APP_NAME = '小傻瓜聊天工具';
+export const APP_NAME = 'SillyChat';

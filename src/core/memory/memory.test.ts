@@ -1,6 +1,6 @@
 /**
  * Memory Module Tests
- * 小傻瓜聊天工具 - 记忆模块单元测试
+ * SillyChat - 记忆模块单元测试
  */
 
 import { describe, test, expect, beforeEach, afterEach } from "vitest";

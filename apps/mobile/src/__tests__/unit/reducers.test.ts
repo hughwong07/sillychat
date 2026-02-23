@@ -1,5 +1,5 @@
 /**
- * 小傻瓜聊天工具 - Reducers 和 Actions 单元测试
+ * SillyChat - Reducers 和 Actions 单元测试
  */
 
 import {

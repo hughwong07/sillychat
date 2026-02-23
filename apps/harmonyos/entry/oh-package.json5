@@ -1,0 +1,13 @@
+{
+  "name": "entry",
+  "version": "1.0.0",
+  "description": "SillyChat HarmonyOS Entry Module",
+  "main": "",
+  "author": "SillyChat Team",
+  "license": "MIT",
+  "dependencies": {
+    "@ohos/axios": "^2.2.0"
+  },
+  "devDependencies": {},
+  "dynamicDependencies": {}
+}

@@ -3,7 +3,7 @@
  * 统一导出所有通用UI组件
  */
 
-export { XSGButton, type ButtonVariant, type ButtonSize } from './XSGButton';
-export { XSGCard, type CardVariant } from './XSGCard';
-export { XSGAvatar, type AvatarSize, type OnlineStatus } from './XSGAvatar';
-export { XSGLoading, type LoadingVariant, type LoadingSize } from './XSGLoading';
+export { SillyChatButton, type ButtonVariant, type ButtonSize } from './SillyChatButton';
+export { SillyChatCard, type CardVariant } from './SillyChatCard';
+export { SillyChatAvatar, type AvatarSize, type OnlineStatus } from './SillyChatAvatar';
+export { SillyChatLoading, type LoadingVariant, type LoadingSize } from './SillyChatLoading';

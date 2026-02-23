@@ -318,7 +318,7 @@ gpg --symmetric --cipher-algo AES256 sillychat-release.keystore
 
 ```
 应用信息:
-├── 应用名称: 小傻瓜聊天工具
+├── 应用名称: SillyChat
 ├── 简短描述: 智能、简洁、有趣的聊天体验 (80字符以内)
 ├── 完整描述: 详见下方
 ├── 应用图标: 512x512 PNG
@@ -335,7 +335,7 @@ gpg --symmetric --cipher-algo AES256 sillychat-release.keystore
 #### 完整描述模板
 
 ```
-小傻瓜聊天工具 - 让沟通更简单
+SillyChat - 让沟通更简单
 
 🚀 主要功能:
 • 端到端加密 - 您的消息只有您和收件人可以阅读

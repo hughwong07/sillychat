@@ -1,5 +1,5 @@
-appId: com.xiaoshagua.chat
-productName: 小傻瓜聊天工具
+appId: com.sillychat.app
+productName: SillyChat
 copyright: Copyright © 2026
 directories:
   output: release
@@ -20,7 +20,7 @@ win:
       arch:
         - x64
   icon: assets/icon.ico
-  publisherName: 小傻瓜团队
+  publisherName: SillyChat团队
   verifyUpdateCodeSignature: false
 mac:
   target:
@@ -43,13 +43,13 @@ mac:
   entitlementsInherit: build/entitlements.mac.plist
   asarUnpack:
     - '**/node_modules/sharp/**/*'
-    - '**/node_modules/@xiaoshagua/core/**/*'
+    - '**/node_modules/@sillychat/core/**/*'
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: 小傻瓜聊天工具
+  shortcutName: SillyChat
   installerIcon: assets/icon.ico
   uninstallerIcon: assets/icon.ico
   installerHeaderIcon: assets/icon.ico

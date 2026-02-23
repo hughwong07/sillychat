@@ -1,5 +1,5 @@
 /**
- * 小傻瓜聊天工具 - Android 移动端主入口
+ * SillyChat - Android 移动端主入口
  * Phase 4 Android 开发
  */
 

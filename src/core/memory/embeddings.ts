@@ -1,6 +1,6 @@
 /**
  * Embedding Service
- * 小傻瓜聊天工具 - 嵌入向量生成服务
+ * SillyChat - 嵌入向量生成服务
  */
 
 import {

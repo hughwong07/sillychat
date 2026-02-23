@@ -1,6 +1,6 @@
 /**
  * Blob Storage Pool
- * 小傻瓜聊天工具 - Blob存储池(去重)
+ * SillyChat - Blob存储池(去重)
  */
 
 import * as fs from 'fs';

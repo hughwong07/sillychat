@@ -1,0 +1,36 @@
+{
+  "color": [
+    {
+      "name": "start_window_background",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "primary",
+      "value": "#A4D037"
+    },
+    {
+      "name": "secondary",
+      "value": "#2DB5C8"
+    },
+    {
+      "name": "background",
+      "value": "#F5F5F5"
+    },
+    {
+      "name": "surface",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "on_surface",
+      "value": "#333333"
+    },
+    {
+      "name": "on_surface_variant",
+      "value": "#666666"
+    },
+    {
+      "name": "error",
+      "value": "#B3261E"
+    }
+  ]
+}

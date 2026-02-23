@@ -1,5 +1,5 @@
 /**
- * XiaoShagua (小傻瓜) Chat Protocol - Core Types
+ * SillyChat Protocol - Core Types
  */
 
 // 基础枚举类型

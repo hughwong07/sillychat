@@ -1,5 +1,5 @@
 /**
- * 小傻瓜聊天工具 - usePrevious Hook
+ * SillyChat - usePrevious Hook
  */
 
 import { useRef, useEffect } from 'react';

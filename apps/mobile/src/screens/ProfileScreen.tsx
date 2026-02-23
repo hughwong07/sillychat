@@ -16,15 +16,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Appbar, Button, Divider, List, Switch } from 'react-native-paper';
-import { XSGAvatar } from '../components/common/XSGAvatar';
-import { XSGCard } from '../components/common/XSGCard';
+import { SillyChatAvatar } from '../components/common/SillyChatAvatar';
+import { SillyChatCard } from '../components/common/SillyChatCard';
 import { COLORS, PRIMARY, ACCENT } from '../constants/colors';
 
 // 模拟用户数据
 const MOCK_USER = {
   id: 'user_001',
   username: 'silly_user',
-  nickname: '小傻瓜用户',
+  nickname: 'SillyChat用户',
   avatar: undefined,
   bio: '热爱探索AI的无限可能 ✨',
   email: 'user@sillychat.com',
@@ -99,9 +99,9 @@ export const ProfileScreen: React.FC = () => {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* 用户信息卡片 */}
-        <XSGCard style={styles.profileCard}>
+        <SillyChatCard style={styles.profileCard}>
           <View style={styles.profileHeader}>
-            <XSGAvatar
+            <SillyChatAvatar
               name={user.nickname}
               uri={user.avatar}
               size="xlarge"
@@ -143,12 +143,12 @@ export const ProfileScreen: React.FC = () => {
               <Text style={styles.statLabel}>代理</Text>
             </View>
           </View>
-        </XSGCard>
+        </SillyChatCard>
 
         {/* 账号信息 */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>账号信息</Text>
-          <XSGCard padding="none">
+          <SillyChatCard padding="none">
             <MenuItem
               icon="email-outline"
               title="邮箱"
@@ -169,13 +169,13 @@ export const ProfileScreen: React.FC = () => {
               subtitle={user.joinDate}
               showArrow={false}
             />
-          </XSGCard>
+          </SillyChatCard>
         </View>
 
         {/* 偏好设置 */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>偏好设置</Text>
-          <XSGCard padding="none">
+          <SillyChatCard padding="none">
             <MenuItem
               icon="bell-outline"
               title="消息通知"
@@ -203,13 +203,13 @@ export const ProfileScreen: React.FC = () => {
                 />
               }
             />
-          </XSGCard>
+          </SillyChatCard>
         </View>
 
         {/* 更多 */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>更多</Text>
-          <XSGCard padding="none">
+          <SillyChatCard padding="none">
             <MenuItem
               icon="help-circle-outline"
               title="帮助与反馈"
@@ -228,7 +228,7 @@ export const ProfileScreen: React.FC = () => {
               title="隐私政策"
               onPress={() => {}}
             />
-          </XSGCard>
+          </SillyChatCard>
         </View>
 
         {/* 退出登录 */}

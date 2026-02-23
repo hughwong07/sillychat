@@ -992,7 +992,7 @@ import {
 } from '@/constants/config';
 
 // 应用信息
-APP_INFO.name; // "小傻瓜聊天工具"
+APP_INFO.name; // "SillyChat"
 APP_INFO.version; // "1.0.0"
 
 // 分页配置

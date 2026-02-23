@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "XSGChat"
+rootProject.name = "SillyChat"
 include(":app")

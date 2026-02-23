@@ -25,10 +25,10 @@
 # =============================================================================
 
 # Keep Application class
--keep class com.xiaoshagua.xsgchat.XSGChatApplication { *; }
+-keep class com.sillychat.app.SillyChatApplication { *; }
 
 # Keep MainActivity for launcher
--keep class com.xiaoshagua.xsgchat.MainActivity { *; }
+-keep class com.sillychat.app.MainActivity { *; }
 
 # =============================================================================
 # Kotlin
@@ -57,10 +57,10 @@
 -keep class kotlinx.serialization.** { *; }
 
 # Keep serializable classes
--keepclassmembers class com.xiaoshagua.xsgchat.data.** {
+-keepclassmembers class com.sillychat.app.data.** {
     <fields>;
 }
--keep class com.xiaoshagua.xsgchat.data.** { *; }
+-keep class com.sillychat.app.data.** { *; }
 
 # =============================================================================
 # Hilt / Dagger
@@ -79,7 +79,7 @@
 }
 
 # Keep Hilt modules
--keep class com.xiaoshagua.xsgchat.di.** { *; }
+-keep class com.sillychat.app.di.** { *; }
 
 # =============================================================================
 # Room Database
@@ -95,7 +95,7 @@
 -keep class * extends androidx.room.RoomDatabase
 
 # Keep Room entities and DAOs
--keep class com.xiaoshagua.xsgchat.data.local.** { *; }
+-keep class com.sillychat.app.data.local.** { *; }
 
 # =============================================================================
 # Ktor Client
@@ -122,14 +122,14 @@
 # =============================================================================
 # Services and Receivers
 # =============================================================================
--keep class com.xiaoshagua.xsgchat.service.** { *; }
--keep class com.xiaoshagua.xsgchat.receiver.** { *; }
+-keep class com.sillychat.app.service.** { *; }
+-keep class com.sillychat.app.receiver.** { *; }
 
 # Keep Service class
--keep class com.xiaoshagua.xsgchat.service.GatewayService { *; }
+-keep class com.sillychat.app.service.GatewayService { *; }
 
 # Keep BootReceiver
--keep class com.xiaoshagua.xsgchat.receiver.BootReceiver { *; }
+-keep class com.sillychat.app.receiver.BootReceiver { *; }
 
 # =============================================================================
 # DataStore

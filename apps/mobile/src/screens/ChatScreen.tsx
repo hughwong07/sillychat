@@ -32,7 +32,7 @@ const MOCK_MESSAGES: Message[] = [
     conversationId: 'conv_001',
     senderId: 'agent_001',
     senderType: 'agent',
-    content: '你好！我是小傻瓜AI助手，有什么可以帮助你的吗？',
+    content: '你好！我是SillyChat AI助手，有什么可以帮助你的吗？',
     contentType: 'text',
     status: 'read',
     timestamp: Date.now() - 3600000,
@@ -135,7 +135,7 @@ export const ChatScreen: React.FC = () => {
   // 获取用户信息
   const getUserInfo = useCallback((userId: string) => {
     if (userId === 'agent_001') {
-      return { name: '小傻瓜AI', avatar: undefined };
+      return { name: 'SillyChat AI', avatar: undefined };
     }
     return { name: '用户', avatar: undefined };
   }, []);
@@ -164,7 +164,7 @@ export const ChatScreen: React.FC = () => {
           hasMore={hasMore}
           getUserInfo={getUserInfo}
           onMessageLongPress={handleMessageLongPress}
-          typingUsers={isTyping ? ['小傻瓜AI'] : []}
+          typingUsers={isTyping ? ['SillyChat AI'] : []}
         />
 
         <MessageInput

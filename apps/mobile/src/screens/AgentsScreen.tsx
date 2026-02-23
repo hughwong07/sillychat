@@ -17,15 +17,15 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Appbar, Chip, Badge } from 'react-native-paper';
 import { Agent, AgentStatus } from '../types';
-import { XSGAvatar } from '../components/common/XSGAvatar';
-import { XSGCard } from '../components/common/XSGCard';
+import { SillyChatAvatar } from '../components/common/SillyChatAvatar';
+import { SillyChatCard } from '../components/common/SillyChatCard';
 import { COLORS, PRIMARY, ACCENT } from '../constants/colors';
 
 // 模拟代理数据
 const MOCK_AGENTS: Agent[] = [
   {
     id: 'agent_001',
-    name: '小傻瓜助手',
+    name: 'Silly助手',
     description: '通用AI助手，可以回答各种问题，提供日常帮助',
     status: 'idle',
     capabilities: [
@@ -124,9 +124,9 @@ interface AgentCardProps {
 
 const AgentCard: React.FC<AgentCardProps> = ({ agent, onPress }) => {
   return (
-    <XSGCard style={styles.agentCard} onPress={() => onPress(agent)}>
+    <SillyChatCard style={styles.agentCard} onPress={() => onPress(agent)}>
       <View style={styles.agentHeader}>
-        <XSGAvatar
+        <SillyChatAvatar
           name={agent.name}
           size="large"
           showStatus={true}
@@ -175,7 +175,7 @@ const AgentCard: React.FC<AgentCardProps> = ({ agent, onPress }) => {
           </Chip>
         )}
       </View>
-    </XSGCard>
+    </SillyChatCard>
   );
 };
 

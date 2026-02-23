@@ -1,6 +1,6 @@
 /**
- * XiaoShagua (小傻瓜) Chat Protocol - Constants
- * 
+ * SillyChat Protocol - Constants
+ *
  * 协议常量定义
  */
 
@@ -14,7 +14,7 @@ export const PROTOCOL_VERSION: ProtocolVersion = {
   major: 1,
   minor: 0,
   patch: 0,
-  name: 'XSG-Protocol-v1',
+  name: 'SillyChat-Protocol-v1',
 };
 
 // ============================================

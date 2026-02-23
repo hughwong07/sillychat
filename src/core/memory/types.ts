@@ -1,6 +1,6 @@
 /**
  * Memory Module Type Definitions
- * 小傻瓜聊天工具 - 记忆模块类型定义
+ * SillyChat - 记忆模块类型定义
  */
 
 import { EventEmitter } from 'events';

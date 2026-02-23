@@ -47,9 +47,9 @@ apps/mobile/
 
 ```
 apps/android/
-├── app/src/main/java/com/xiaoshagua/xsgchat/
+├── app/src/main/java/com/sillychat/app/
 │   ├── MainActivity.kt
-│   ├── XSGChatApplication.kt
+│   ├── SillyChatApplication.kt
 │   ├── ui/
 │   │   ├── screens/      # 界面屏幕
 │   │   ├── theme/        # 主题配置

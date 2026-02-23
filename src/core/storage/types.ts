@@ -1,6 +1,6 @@
 /**
  * Storage Module Type Definitions
- * 小傻瓜聊天工具 - 存储模块类型定义
+ * SillyChat - 存储模块类型定义
  */
 
 import { EventEmitter } from 'events';

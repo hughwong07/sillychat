@@ -1,5 +1,5 @@
 /**
- * 小傻瓜聊天工具 - Chat Reducer
+ * SillyChat - Chat Reducer
  */
 
 export interface ChatMessage {

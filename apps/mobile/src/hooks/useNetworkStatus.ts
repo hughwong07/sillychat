@@ -1,5 +1,5 @@
 /**
- * 小傻瓜聊天工具 - useNetworkStatus Hook
+ * SillyChat - useNetworkStatus Hook
  */
 
 import { useState, useEffect } from 'react';

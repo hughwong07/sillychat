@@ -1,2 +1,2 @@
-# sillychat
-小傻瓜聊天工具 - Multi-platform AI-native chat application
+# SillyChat
+SillyChat - Multi-platform AI-native chat application

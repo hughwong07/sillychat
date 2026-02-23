@@ -1,5 +1,5 @@
 /**
- * XiaoShagua Gateway Module - Type Definitions
+ * SillyChat Gateway Module - Type Definitions
  */
 
 import type { WebSocket } from 'ws';
@@ -45,10 +45,10 @@ export const DEFAULT_GATEWAY_CONFIG: GatewayConfig = {
   port: 18789,
   host: '0.0.0.0',
   enableDiscovery: true,
-  deviceName: 'XiaoShagua-Gateway',
+  deviceName: 'SillyChat-Gateway',
   deviceType: DeviceType.DESKTOP,
   capabilities: ['chat', 'file-transfer', 'sync', 'skills'],
-  jwtSecret: process.env.XSG_JWT_SECRET || 'xiaoshagua-default-secret',
+  jwtSecret: process.env.SILLYCHAT_JWT_SECRET || 'sillychat-default-secret',
   jwtExpiresIn: 7 * 24 * 60 * 60 * 1000,
   maxConnections: 100,
   maxMessageSize: 10 * 1024 * 1024,

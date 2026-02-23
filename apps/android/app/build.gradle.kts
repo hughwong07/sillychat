@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.xiaoshagua.xsgchat"
+    namespace = "com.sillychat.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.xiaoshagua.xsgchat"
+        applicationId = "com.sillychat.app"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

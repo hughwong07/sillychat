@@ -1,5 +1,5 @@
 /**
- * 小傻瓜聊天工具 - Agent Reducer
+ * SillyChat - Agent Reducer
  */
 
 export type AgentStatus = 'online' | 'offline' | 'busy' | 'away';

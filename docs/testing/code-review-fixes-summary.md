@@ -91,7 +91,7 @@ buildTypes {
 ### 2. 架构修复
 
 #### 2.1 数据层重构
-**文件**: `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/data/model/Message.kt`
+**文件**: `apps/android/app/src/main/java/com/sillychat/app/data/model/Message.kt`
 
 ```kotlin
 @Entity(tableName = "messages")
@@ -109,7 +109,7 @@ enum class MessageRole {
 }
 ```
 
-**文件**: `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/ui/screens/ChatScreen.kt`
+**文件**: `apps/android/app/src/main/java/com/sillychat/app/ui/screens/ChatScreen.kt`
 
 修改前:
 ```kotlin
@@ -123,8 +123,8 @@ data class ChatMessage(
 
 修改后:
 ```kotlin
-import com.xiaoshagua.xsgchat.data.model.Message
-import com.xiaoshagua.xsgchat.data.model.MessageRole
+import com.sillychat.app.data.model.Message
+import com.sillychat.app.data.model.MessageRole
 ```
 
 ---
@@ -132,7 +132,7 @@ import com.xiaoshagua.xsgchat.data.model.MessageRole
 ### 3. 性能修复
 
 #### 3.1 消息列表优化
-**文件**: `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/viewmodel/ChatViewModel.kt`
+**文件**: `apps/android/app/src/main/java/com/sillychat/app/viewmodel/ChatViewModel.kt`
 
 ```kotlin
 val reversedMessages: StateFlow<List<Message>> = _uiState
@@ -144,7 +144,7 @@ val reversedMessages: StateFlow<List<Message>> = _uiState
     )
 ```
 
-**文件**: `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/ui/screens/ChatScreen.kt`
+**文件**: `apps/android/app/src/main/java/com/sillychat/app/ui/screens/ChatScreen.kt`
 
 ```kotlin
 LazyColumn(
@@ -161,7 +161,7 @@ LazyColumn(
 ```
 
 #### 3.2 输入验证
-**文件**: `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/viewmodel/ChatViewModel.kt`
+**文件**: `apps/android/app/src/main/java/com/sillychat/app/viewmodel/ChatViewModel.kt`
 
 ```kotlin
 companion object {
@@ -182,7 +182,7 @@ fun onInputChange(text: String) {
 ### 4. 错误处理完善
 
 #### 4.1 UiState 设计
-**文件**: `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/viewmodel/ChatViewModel.kt`
+**文件**: `apps/android/app/src/main/java/com/sillychat/app/viewmodel/ChatViewModel.kt`
 
 ```kotlin
 data class ChatUiState(
@@ -267,24 +267,24 @@ fun sendMessage() {
 ### 新文件
 1. `apps/android/app/src/main/res/xml/network_security_config.xml`
 2. `apps/android/app/proguard-rules.pro`
-3. `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/data/model/Message.kt`
-4. `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/data/model/Agent.kt`
-5. `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/data/local/AppDatabase.kt`
-6. `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/data/local/MessageDao.kt`
-7. `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/data/local/AgentDao.kt`
-8. `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/data/remote/ApiService.kt`
-9. `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/data/repository/MessageRepository.kt`
-10. `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/data/repository/AgentRepository.kt`
+3. `apps/android/app/src/main/java/com/sillychat/app/data/model/Message.kt`
+4. `apps/android/app/src/main/java/com/sillychat/app/data/model/Agent.kt`
+5. `apps/android/app/src/main/java/com/sillychat/app/data/local/AppDatabase.kt`
+6. `apps/android/app/src/main/java/com/sillychat/app/data/local/MessageDao.kt`
+7. `apps/android/app/src/main/java/com/sillychat/app/data/local/AgentDao.kt`
+8. `apps/android/app/src/main/java/com/sillychat/app/data/remote/ApiService.kt`
+9. `apps/android/app/src/main/java/com/sillychat/app/data/repository/MessageRepository.kt`
+10. `apps/android/app/src/main/java/com/sillychat/app/data/repository/AgentRepository.kt`
 
 ### 修改的文件
 1. `apps/android/app/src/main/AndroidManifest.xml`
 2. `apps/android/app/build.gradle.kts`
-3. `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/ui/screens/ChatScreen.kt`
-4. `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/ui/theme/Theme.kt`
-5. `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/viewmodel/ChatViewModel.kt`
-6. `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/viewmodel/AgentViewModel.kt`
-7. `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/viewmodel/SettingsViewModel.kt`
-8. `apps/android/app/src/main/java/com/xiaoshagua/xsgchat/viewmodel/MainViewModel.kt`
+3. `apps/android/app/src/main/java/com/sillychat/app/ui/screens/ChatScreen.kt`
+4. `apps/android/app/src/main/java/com/sillychat/app/ui/theme/Theme.kt`
+5. `apps/android/app/src/main/java/com/sillychat/app/viewmodel/ChatViewModel.kt`
+6. `apps/android/app/src/main/java/com/sillychat/app/viewmodel/AgentViewModel.kt`
+7. `apps/android/app/src/main/java/com/sillychat/app/viewmodel/SettingsViewModel.kt`
+8. `apps/android/app/src/main/java/com/sillychat/app/viewmodel/MainViewModel.kt`
 
 ---
 

@@ -1,7 +1,7 @@
 {
-  "name": "xsg-desktop",
+  "name": "sillychat-desktop",
   "version": "1.0.0",
-  "description": "小傻瓜聊天工具 - Windows桌面端",
+  "description": "SillyChat - Windows桌面端",
   "main": "dist/main/index.js",
   "scripts": {
     "dev": "npm run build:preload && electron .",
@@ -20,7 +20,7 @@
     "lint": "eslint src --ext .ts,.tsx"
   },
   "dependencies": {
-    "@xiaoshagua/core": "file:../../",
+    "@sillychat/core": "file:../../",
     "electron-log": "^5.0.1",
     "electron-updater": "^6.1.7"
   },

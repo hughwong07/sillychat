@@ -1,5 +1,5 @@
 /**
- * 小傻瓜聊天工具 - useDebounce Hook
+ * SillyChat - useDebounce Hook
  */
 
 import { useState, useEffect } from 'react';

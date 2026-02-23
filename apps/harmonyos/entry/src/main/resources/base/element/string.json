@@ -1,0 +1,68 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "SillyChat HarmonyOS Module"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "SillyChat Main Entry"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "SillyChat"
+    },
+    {
+      "name": "EntryBackupAbility_label",
+      "value": "SillyChat Backup"
+    },
+    {
+      "name": "app_name",
+      "value": "SillyChat"
+    },
+    {
+      "name": "chat_title",
+      "value": "Chat"
+    },
+    {
+      "name": "agents_title",
+      "value": "AI Agents"
+    },
+    {
+      "name": "settings_title",
+      "value": "Settings"
+    },
+    {
+      "name": "profile_title",
+      "value": "Profile"
+    },
+    {
+      "name": "input_hint",
+      "value": "Type a message..."
+    },
+    {
+      "name": "send",
+      "value": "Send"
+    },
+    {
+      "name": "cancel",
+      "value": "Cancel"
+    },
+    {
+      "name": "confirm",
+      "value": "Confirm"
+    },
+    {
+      "name": "loading",
+      "value": "Loading..."
+    },
+    {
+      "name": "error_network",
+      "value": "Network error, please check your connection"
+    },
+    {
+      "name": "error_generic",
+      "value": "Something went wrong"
+    }
+  ]
+}

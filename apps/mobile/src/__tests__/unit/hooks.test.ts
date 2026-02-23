@@ -1,5 +1,5 @@
 /**
- * 小傻瓜聊天工具 - Hooks 单元测试
+ * SillyChat - Hooks 单元测试
  */
 
 import { renderHook, act } from '@testing-library/react-hooks';

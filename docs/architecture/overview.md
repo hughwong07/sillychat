@@ -1,8 +1,8 @@
-# 小傻瓜聊天工具 - 系统架构总览
+# SillyChat - 系统架构总览
 
 ## 概述
 
-小傻瓜聊天工具 (SillyChat) 是一个多端协同的 AI 聊天系统，支持三种运行模式：
+SillyChat 是一个多端协同的 AI 聊天系统，支持三种运行模式：
 - **服务端模式**：集成 OpenClaw 能力，作为 AI 服务提供方
 - **客户端模式**：仅作为聊天客户端，连接配对的服务端
 - **混合模式**：既是 OpenClaw 服务提供方，又是聊天客户端
@@ -198,7 +198,7 @@ apps/mobile/
 
 ```
 apps/android/
-├── app/src/main/java/com/xiaoshagua/xsgchat/
+├── app/src/main/java/com/sillychat/app/
 │   ├── data/           # 数据层
 │   │   ├── model/      # 数据模型
 │   │   ├── local/      # 本地数据库
@@ -225,6 +225,41 @@ apps/android/
 
 **注意**: 与 desktop (Electron) 不同，这是完全原生的 macOS 实现。
 
+### 鸿蒙端 (HarmonyOS)
+
+**技术栈**: ArkTS + ArkUI
+
+**位置**: `apps/harmonyos/`
+
+```
+apps/harmonyos/
+├── entry/src/main/
+│   ├── ets/
+│   │   ├── entryability/   # Ability 入口
+│   │   ├── pages/          # 页面
+│   │   │   ├── Index.ets   # 主页面
+│   │   │   ├── Chat.ets    # 聊天页面
+│   │   │   └── Settings.ets # 设置页面
+│   │   ├── components/     # 自定义组件
+│   │   ├── services/       # 服务层
+│   │   │   ├── WebSocketService.ets  # WebSocket 连接
+│   │   │   ├── MessageService.ets    # 消息管理
+│   │   │   └── StorageService.ets    # 本地存储
+│   │   ├── models/         # 数据模型
+│   │   └── utils/          # 工具函数
+│   ├── resources/          # 资源文件
+│   └── module.json5        # 模块配置
+├── AppScope/
+│   └── app.json5           # 应用配置
+└── build-profile.json5     # 构建配置
+```
+
+**支持设备**:
+- 手机 (Phone)
+- 平板 (Tablet)
+
+**说明**: 鸿蒙端是独立的原生实现，使用 ArkTS 语言和 ArkUI 声明式 UI 框架，专为 HarmonyOS 生态优化。
+
 ## 目录结构说明
 
 ### 当前目录布局
@@ -237,8 +272,10 @@ apps/
 │                     # 独立的原生实现
 ├── mobile/           # React Native 跨平台移动应用
 │                     # 支持 Android + iOS
-└── android/          # 原生 Kotlin Android 应用
-                      # 独立的原生实现
+├── android/          # 原生 Kotlin Android 应用
+│                     # 独立的原生实现
+└── harmonyos/        # 原生 ArkTS HarmonyOS 应用
+                      # 支持手机 + 平板
 ```
 
 ### 平台选择建议
@@ -249,6 +286,7 @@ apps/
 | 桌面端（Mac 原生体验） | macos (Swift) | 最佳 macOS 体验 |
 | 移动端（通用） | mobile (React Native) | 一套代码，跨平台 |
 | 移动端（Android 原生） | android (Kotlin) | 最佳 Android 体验 |
+| 移动端（鸿蒙原生） | harmonyos (ArkTS) | 最佳 HarmonyOS 体验 |
 
 ## 核心模块连接流程
 
@@ -407,5 +445,6 @@ UI显示 ◀── 响应 ◀── WebSocket ◀── AI处理结果
 
 - [桌面端架构](./desktop.md)
 - [Android 架构](./android.md)
+- [鸿蒙端架构](./harmonyos.md)
 - [OpenClaw 集成](../integration/openclaw.md)
 - [API 文档](../api/README.md)
