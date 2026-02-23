@@ -53,10 +53,9 @@ export function deserializeFromJSON(json: string): DeserializationResult<XSGMess
   } catch (error) {
     return {
       success: false,
-      error: {
-        code: ErrorCode.INVALID_JSON,
-        message: error instanceof Error ? error.message : "Invalid JSON format",
-      },
+      data: undefined,
+      error: error instanceof Error ? error.message : "Invalid JSON format",
+      errorCode: ErrorCode.DESERIALIZATION_FAILED,
     };
   }
 }
@@ -76,10 +75,10 @@ export function serializeJSON(message: XSGMessage): SerializationResult {
   } catch (error) {
     return {
       success: false,
-      error: {
-        code: ErrorCode.SERIALIZATION_FAILED,
-        message: error instanceof Error ? error.message : "JSON serialization failed",
-      },
+      format: SerializationFormat.JSON,
+      data: "",
+      error: error instanceof Error ? error.message : "JSON serialization failed",
+      errorCode: ErrorCode.SERIALIZATION_FAILED,
     };
   }
 }
@@ -134,35 +133,32 @@ export function deserializeFromProtobuf(buffer: Uint8Array): DeserializationResu
     if (buffer.length < 10) {
       return {
         success: false,
-        error: {
-          code: ErrorCode.INVALID_PROTOBUF,
-          message: "Buffer too small for protobuf header",
-        },
+        data: undefined,
+        error: "Buffer too small for protobuf header",
+        errorCode: ErrorCode.DESERIALIZATION_FAILED,
       };
     }
-    
+
     // Check magic bytes
     if (buffer[0] !== 0x58 || buffer[1] !== 0x53 || buffer[2] !== 0x47) {
       return {
         success: false,
-        error: {
-          code: ErrorCode.INVALID_PROTOBUF,
-          message: "Invalid protobuf magic bytes",
-        },
+        data: undefined,
+        error: "Invalid protobuf magic bytes",
+        errorCode: ErrorCode.DESERIALIZATION_FAILED,
       };
     }
-    
+
     // Read data length
     const view = new DataView(buffer.buffer, buffer.byteOffset);
     const dataLength = view.getUint32(6, false);
-    
+
     if (buffer.length < 10 + dataLength) {
       return {
         success: false,
-        error: {
-          code: ErrorCode.INVALID_PROTOBUF,
-          message: "Buffer too small for declared data length",
-        },
+        data: undefined,
+        error: "Buffer too small for declared data length",
+        errorCode: ErrorCode.DESERIALIZATION_FAILED,
       };
     }
     
@@ -179,10 +175,9 @@ export function deserializeFromProtobuf(buffer: Uint8Array): DeserializationResu
   } catch (error) {
     return {
       success: false,
-      error: {
-        code: ErrorCode.DESERIALIZATION_FAILED,
-        message: error instanceof Error ? error.message : "Protobuf deserialization failed",
-      },
+      data: undefined,
+      error: error instanceof Error ? error.message : "Protobuf deserialization failed",
+      errorCode: ErrorCode.DESERIALIZATION_FAILED,
     };
   }
 }
@@ -234,10 +229,10 @@ export function serialize(
     default:
       return {
         success: false,
-        error: {
-          code: ErrorCode.UNSUPPORTED_FORMAT,
-          message: `Unsupported serialization format: ${format}`,
-        },
+        format: SerializationFormat.JSON,
+        data: "",
+        error: `Unsupported serialization format: ${format}`,
+        errorCode: ErrorCode.UNSUPPORTED_FORMAT,
       };
   }
 }
@@ -257,10 +252,10 @@ export function serializeProtobuf(message: XSGMessage): SerializationResult {
   } catch (error) {
     return {
       success: false,
-      error: {
-        code: ErrorCode.SERIALIZATION_FAILED,
-        message: error instanceof Error ? error.message : "Protobuf serialization failed",
-      },
+      format: SerializationFormat.PROTOBUF,
+      data: new Uint8Array(),
+      error: error instanceof Error ? error.message : "Protobuf serialization failed",
+      errorCode: ErrorCode.SERIALIZATION_FAILED,
     };
   }
 }
@@ -283,7 +278,7 @@ export function deserialize(
         return {
           success: false,
           error: {
-            code: ErrorCode.INVALID_FORMAT,
+            code: ErrorCode.VALIDATION_INVALID_FORMAT,
             message: "Expected string data for JSON deserialization",
           },
         };
@@ -294,7 +289,7 @@ export function deserialize(
         return {
           success: false,
           error: {
-            code: ErrorCode.INVALID_FORMAT,
+            code: ErrorCode.VALIDATION_INVALID_FORMAT,
             message: "Expected Uint8Array data for Protobuf deserialization",
           },
         };
@@ -303,10 +298,10 @@ export function deserialize(
     default:
       return {
         success: false,
-        error: {
-          code: ErrorCode.UNSUPPORTED_FORMAT,
-          message: `Unsupported deserialization format: ${format}`,
-        },
+        format: format || SerializationFormat.JSON,
+        data: undefined,
+        error: `Unsupported deserialization format: ${format}`,
+        errorCode: ErrorCode.UNSUPPORTED_FORMAT,
       };
   }
 }
@@ -376,7 +371,7 @@ export function serializeBatch(
   for (let i = 0; i < messages.length; i++) {
     const result = serialize(messages[i], format);
     if (!result.success || !(result.data instanceof Uint8Array)) {
-      errors.push({ index: i, error: result.error?.message || "Serialization failed" });
+      errors.push({ index: i, error: typeof result.error === 'string' ? result.error : result.error?.message || "Serialization failed" });
       continue;
     }
     
@@ -432,7 +427,7 @@ export function deserializeBatch(
         return {
           success: false,
           error: {
-            code: ErrorCode.INVALID_FORMAT,
+            code: ErrorCode.VALIDATION_INVALID_FORMAT,
             message: "Expected array of messages",
           },
         };
@@ -445,7 +440,7 @@ export function deserializeBatch(
       return {
         success: false,
         error: {
-          code: ErrorCode.INVALID_JSON,
+          code: ErrorCode.DESERIALIZATION_FAILED,
           message: error instanceof Error ? error.message : "Invalid JSON batch",
         },
       };
@@ -457,7 +452,7 @@ export function deserializeBatch(
     return {
       success: false,
       error: {
-        code: ErrorCode.INVALID_FORMAT,
+        code: ErrorCode.VALIDATION_INVALID_FORMAT,
         message: "Expected Uint8Array for protobuf batch",
       },
     };
@@ -476,7 +471,7 @@ export function deserializeBatch(
       return {
         success: false,
         error: {
-          code: ErrorCode.INVALID_PROTOBUF,
+          code: ErrorCode.DESERIALIZATION_FAILED,
           message: `Incomplete message at offset ${offset}`,
         },
       };

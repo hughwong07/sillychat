@@ -40,13 +40,9 @@
     "**/*.test.ts",
     "src/core/storage/manager.ts",
     "src/core/utils/crypto.ts",
-    "src/core/protocol/validation.ts",
-    "src/core/protocol/messages.ts",
-    "src/core/protocol/serialization.ts",
-    "src/core/config/manager.ts",
     "src/core/gateway/discovery.ts",
     "src/core/gateway/message-handler.ts",
     "src/core/gateway/server.ts",
-    "src/core/gateway/gateway.test.ts"
+    "src/core/config/manager.ts"
   ]
 }

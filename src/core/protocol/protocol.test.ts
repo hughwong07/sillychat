@@ -198,7 +198,7 @@ describe("Protocol Module", () => {
     });
   });
 
-  describe.skip("Serialization", () => {
+  describe("Serialization", () => {
     let message: ReturnType<typeof createTextMessage>;
     
     beforeEach(() => {
@@ -259,7 +259,7 @@ describe("Protocol Module", () => {
     });
   });
 
-  describe.skip("Validation", () => {
+  describe("Validation", () => {
     let validMessage: ReturnType<typeof createTextMessage>;
     
     beforeEach(() => {
@@ -351,14 +351,14 @@ describe("Protocol Module", () => {
       expect(cloned.content.data).toBe(message.content.data);
     });
     
-    it.skip("should sanitize text", () => {
+    it("should sanitize text", () => {
       const dirty = "\u003cscript\u003ealert(1)\u003c/script\u003e";
       const clean = sanitizeText(dirty);
       expect(clean).not.toContain("\u003cscript\u003e");
       expect(clean).toContain("\u0026lt;");
     });
     
-    it.skip("should check version compatibility", () => {
+    it("should check version compatibility", () => {
       const result = checkVersionCompatibility("XSG-Protocol-v1");
       expect(result.compatible).toBe(true);
       

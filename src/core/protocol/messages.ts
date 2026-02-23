@@ -467,7 +467,7 @@ export function createSyncCompletedEvent(deviceId: string, syncType: string, ite
   });
 }
 
-export function createErrorEvent(errorCode: ErrorCode, errorMessage: string, originalMessageId?: string): SystemEvent {
+export function createErrorEvent(errorCode: string, errorMessage: string, originalMessageId?: string): SystemEvent {
   return createSystemEvent({
     eventType: SystemEventType.ERROR,
     data: { errorCode, errorMessage, originalMessageId },

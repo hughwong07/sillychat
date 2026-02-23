@@ -14,6 +14,7 @@ import {
   Sender,
   Target,
   AuthContext,
+  Content,
   MessageType,
   ContentType,
   SenderRole,
@@ -23,6 +24,7 @@ import {
   FileTransferStatus,
   PermissionLevel,
   type ValidationError,
+  type ValidationResult,
 } from "./types";
 import {
   PROTOCOL_VERSION,
@@ -31,15 +33,6 @@ import {
   MAX_FILE_SIZE,
   ErrorCode,
 } from "./constants";
-
-// Re-export ValidationResult to avoid conflicts
-export interface ValidationResult<T = unknown> {
-  valid: boolean;
-  data?: T;
-  success?: boolean;
-  errors: ValidationError[];
-  warnings?: ValidationWarning[];
-}
 
 interface ValidationWarning {
   path: string;
@@ -77,7 +70,7 @@ export function validateSender(sender: unknown): ValidationResult<Sender> {
   if (!isValidObject(sender)) {
     return {
       valid: false,
-      errors: [createError(ErrorCode.MISSING_FIELD, "Sender must be an object")],
+      errors: [createError(ErrorCode.VALIDATION_MISSING_FIELD, "Sender must be an object")],
     };
   }
   
@@ -85,17 +78,17 @@ export function validateSender(sender: unknown): ValidationResult<Sender> {
   
   // Validate userId
   if (!isNonEmptyString(s.userId)) {
-    errors.push(createError(ErrorCode.MISSING_FIELD, "Sender userId is required", "sender.userId"));
+    errors.push(createError(ErrorCode.VALIDATION_MISSING_FIELD, "Sender userId is required", "sender.userId"));
   }
   
   // Validate deviceId
   if (!isNonEmptyString(s.deviceId)) {
-    errors.push(createError(ErrorCode.MISSING_FIELD, "Sender deviceId is required", "sender.deviceId"));
+    errors.push(createError(ErrorCode.VALIDATION_MISSING_FIELD, "Sender deviceId is required", "sender.deviceId"));
   }
   
   // Validate role if present
   if (s.role !== undefined && !Object.values(SenderRole).includes(s.role as SenderRole)) {
-    errors.push(createError(ErrorCode.INVALID_TYPE, "Invalid sender role", "sender.role"));
+    errors.push(createError(ErrorCode.VALIDATION_INVALID_TYPE, "Invalid sender role", "sender.role"));
   }
   
   return {
@@ -114,7 +107,7 @@ export function validateTarget(target: unknown): ValidationResult<Target> {
   if (!isValidObject(target)) {
     return {
       valid: false,
-      errors: [createError(ErrorCode.MISSING_FIELD, "Target must be an object")],
+      errors: [createError(ErrorCode.VALIDATION_MISSING_FIELD, "Target must be an object")],
     };
   }
   
@@ -122,12 +115,12 @@ export function validateTarget(target: unknown): ValidationResult<Target> {
   
   // Validate channelId
   if (!isNonEmptyString(t.channelId)) {
-    errors.push(createError(ErrorCode.MISSING_FIELD, "Target channelId is required", "target.channelId"));
+    errors.push(createError(ErrorCode.VALIDATION_MISSING_FIELD, "Target channelId is required", "target.channelId"));
   }
   
   // Validate channelType if present
   if (t.channelType !== undefined && !Object.values(ChannelType).includes(t.channelType as ChannelType)) {
-    errors.push(createError(ErrorCode.INVALID_TYPE, "Invalid channel type", "target.channelType"));
+    errors.push(createError(ErrorCode.VALIDATION_INVALID_TYPE, "Invalid channel type", "target.channelType"));
   }
   
   return {
@@ -146,7 +139,7 @@ export function validateContent(content: unknown): ValidationResult<Content> {
   if (!isValidObject(content)) {
     return {
       valid: false,
-      errors: [createError(ErrorCode.MISSING_FIELD, "Content must be an object")],
+      errors: [createError(ErrorCode.VALIDATION_MISSING_FIELD, "Content must be an object")],
     };
   }
   
@@ -154,19 +147,19 @@ export function validateContent(content: unknown): ValidationResult<Content> {
   
   // Validate type
   if (!Object.values(ContentType).includes(c.type as ContentType)) {
-    errors.push(createError(ErrorCode.INVALID_TYPE, "Invalid content type", "content.type"));
+    errors.push(createError(ErrorCode.VALIDATION_INVALID_TYPE, "Invalid content type", "content.type"));
   }
   
   // Validate data exists
   if (c.data === undefined) {
-    errors.push(createError(ErrorCode.MISSING_FIELD, "Content data is required", "content.data"));
+    errors.push(createError(ErrorCode.VALIDATION_MISSING_FIELD, "Content data is required", "content.data"));
   }
   
   // Type-specific validation
   if (c.type === ContentType.TEXT && typeof c.data === "string") {
     if (c.data.length > MAX_TEXT_LENGTH) {
       errors.push(createError(
-        ErrorCode.CONTENT_TOO_LARGE,
+        ErrorCode.VALIDATION_SIZE_EXCEEDED,
         `Text content exceeds maximum length of ${MAX_TEXT_LENGTH}`,
         "content.data"
       ));
@@ -189,7 +182,7 @@ export function validateAuthContext(auth: unknown): ValidationResult<AuthContext
   if (!isValidObject(auth)) {
     return {
       valid: false,
-      errors: [createError(ErrorCode.MISSING_FIELD, "Auth context must be an object")],
+      errors: [createError(ErrorCode.VALIDATION_MISSING_FIELD, "Auth context must be an object")],
     };
   }
   
@@ -197,9 +190,9 @@ export function validateAuthContext(auth: unknown): ValidationResult<AuthContext
   
   // Validate level
   if (typeof a.level !== "number") {
-    errors.push(createError(ErrorCode.MISSING_FIELD, "Auth level is required", "auth.level"));
+    errors.push(createError(ErrorCode.VALIDATION_MISSING_FIELD, "Auth level is required", "auth.level"));
   } else if (a.level < 0 || a.level > 100) {
-    errors.push(createError(ErrorCode.INVALID_VALUE, "Auth level must be between 0 and 100", "auth.level"));
+    errors.push(createError(ErrorCode.VALIDATION_INVALID_TIMESTAMP, "Auth level must be between 0 and 100", "auth.level"));
   }
   
   return {
@@ -218,7 +211,7 @@ export function validateBaseMessage(message: unknown): ValidationResult<XSGMessa
   if (!isValidObject(message)) {
     return {
       valid: false,
-      errors: [createError(ErrorCode.INVALID_FORMAT, "Message must be an object")],
+      errors: [createError(ErrorCode.VALIDATION_INVALID_FORMAT, "Message must be an object")],
     };
   }
   
@@ -226,22 +219,22 @@ export function validateBaseMessage(message: unknown): ValidationResult<XSGMessa
   
   // Validate id
   if (!isNonEmptyString(m.id)) {
-    errors.push(createError(ErrorCode.MISSING_FIELD, "Message id is required", "id"));
+    errors.push(createError(ErrorCode.VALIDATION_MISSING_FIELD, "Message id is required", "id"));
   }
   
   // Validate timestamp
   if (!isValidTimestamp(m.timestamp)) {
-    errors.push(createError(ErrorCode.INVALID_VALUE, "Valid timestamp is required", "timestamp"));
+    errors.push(createError(ErrorCode.VALIDATION_INVALID_TIMESTAMP, "Valid timestamp is required", "timestamp"));
   }
   
   // Validate type
   if (!Object.values(MessageType).includes(m.type as MessageType)) {
-    errors.push(createError(ErrorCode.INVALID_TYPE, "Valid message type is required", "type"));
+    errors.push(createError(ErrorCode.VALIDATION_INVALID_TYPE, "Valid message type is required", "type"));
   }
   
   // Validate version
   if (!isNonEmptyString(m.version)) {
-    errors.push(createError(ErrorCode.MISSING_FIELD, "Protocol version is required", "version"));
+    errors.push(createError(ErrorCode.VALIDATION_MISSING_FIELD, "Protocol version is required", "version"));
   }
   
   // Validate nested objects
@@ -282,7 +275,7 @@ export function validateChatMessage(message: unknown): ValidationResult<ChatMess
   const m = message as Record<string, unknown>;
   
   if (m.type !== MessageType.CHAT) {
-    errors.push(createError(ErrorCode.INVALID_TYPE, "Message must be of type CHAT", "type"));
+    errors.push(createError(ErrorCode.VALIDATION_INVALID_TYPE, "Message must be of type CHAT", "type"));
   }
   
   return {
@@ -292,27 +285,33 @@ export function validateChatMessage(message: unknown): ValidationResult<ChatMess
 }
 
 export function validateAgentCommand(message: unknown): ValidationResult<AgentCommand> {
-  const baseResult = validateBaseMessage(message);
-  const errors = baseResult.errors ? [...baseResult.errors] : [];
+  const errors: ValidationError[] = [];
+
+  if (!isValidObject(message)) {
+    return {
+      valid: false,
+      errors: [createError(ErrorCode.VALIDATION_INVALID_FORMAT, "Message must be an object")],
+    };
+  }
   
   const m = message as Record<string, unknown>;
   
   if (m.type !== MessageType.COMMAND) {
-    errors.push(createError(ErrorCode.INVALID_TYPE, "Message must be of type COMMAND", "type"));
+    errors.push(createError(ErrorCode.VALIDATION_INVALID_TYPE, "Message must be of type COMMAND", "type"));
   }
   
   // Validate agentId
   if (!isNonEmptyString(m.agentId)) {
-    errors.push(createError(ErrorCode.MISSING_FIELD, "Agent ID is required for commands", "agentId"));
+    errors.push(createError(ErrorCode.VALIDATION_MISSING_FIELD, "Agent ID is required for commands", "agentId"));
   }
   
   // Validate command structure
   if (!isValidObject(m.command)) {
-    errors.push(createError(ErrorCode.MISSING_FIELD, "Command object is required", "command"));
+    errors.push(createError(ErrorCode.VALIDATION_MISSING_FIELD, "Command object is required", "command"));
   } else {
     const cmd = m.command as Record<string, unknown>;
     if (!Object.values(AgentCommandType).includes(cmd.type as AgentCommandType)) {
-      errors.push(createError(ErrorCode.INVALID_TYPE, "Valid command type is required", "command.type"));
+      errors.push(createError(ErrorCode.VALIDATION_INVALID_TYPE, "Valid command type is required", "command.type"));
     }
   }
   
@@ -323,18 +322,24 @@ export function validateAgentCommand(message: unknown): ValidationResult<AgentCo
 }
 
 export function validateSystemEvent(message: unknown): ValidationResult<SystemEvent> {
-  const baseResult = validateBaseMessage(message);
-  const errors = baseResult.errors ? [...baseResult.errors] : [];
-  
+  const errors: ValidationError[] = [];
+
+  if (!isValidObject(message)) {
+    return {
+      valid: false,
+      errors: [createError(ErrorCode.VALIDATION_INVALID_FORMAT, "Message must be an object")],
+    };
+  }
+
   const m = message as Record<string, unknown>;
   
   if (m.type !== MessageType.EVENT) {
-    errors.push(createError(ErrorCode.INVALID_TYPE, "Message must be of type EVENT", "type"));
+    errors.push(createError(ErrorCode.VALIDATION_INVALID_TYPE, "Message must be of type EVENT", "type"));
   }
   
   // Validate eventType
   if (!Object.values(SystemEventType).includes(m.eventType as SystemEventType)) {
-    errors.push(createError(ErrorCode.INVALID_TYPE, "Valid event type is required", "eventType"));
+    errors.push(createError(ErrorCode.VALIDATION_INVALID_TYPE, "Valid event type is required", "eventType"));
   }
   
   return {
@@ -344,36 +349,42 @@ export function validateSystemEvent(message: unknown): ValidationResult<SystemEv
 }
 
 export function validateFileTransfer(message: unknown): ValidationResult<FileTransfer> {
-  const baseResult = validateBaseMessage(message);
-  const errors = baseResult.errors ? [...baseResult.errors] : [];
-  
+  const errors: ValidationError[] = [];
+
+  if (!isValidObject(message)) {
+    return {
+      valid: false,
+      errors: [createError(ErrorCode.VALIDATION_INVALID_FORMAT, "Message must be an object")],
+    };
+  }
+
   const m = message as Record<string, unknown>;
-  
+
   if (m.type !== MessageType.FILE) {
-    errors.push(createError(ErrorCode.INVALID_TYPE, "Message must be of type FILE", "type"));
+    errors.push(createError(ErrorCode.VALIDATION_INVALID_TYPE, "Message must be of type FILE", "type"));
   }
   
   // Validate file-specific fields
   if (!isNonEmptyString(m.fileId)) {
-    errors.push(createError(ErrorCode.MISSING_FIELD, "File ID is required", "fileId"));
+    errors.push(createError(ErrorCode.VALIDATION_MISSING_FIELD, "File ID is required", "fileId"));
   }
   
   if (!isNonEmptyString(m.fileName)) {
-    errors.push(createError(ErrorCode.MISSING_FIELD, "File name is required", "fileName"));
+    errors.push(createError(ErrorCode.VALIDATION_MISSING_FIELD, "File name is required", "fileName"));
   }
   
   if (typeof m.fileSize !== "number" || m.fileSize <= 0) {
-    errors.push(createError(ErrorCode.INVALID_VALUE, "Valid file size is required", "fileSize"));
+    errors.push(createError(ErrorCode.VALIDATION_INVALID_TIMESTAMP, "Valid file size is required", "fileSize"));
   } else if (m.fileSize > MAX_FILE_SIZE) {
     errors.push(createError(
-      ErrorCode.CONTENT_TOO_LARGE,
+      ErrorCode.VALIDATION_SIZE_EXCEEDED,
       `File size exceeds maximum of ${MAX_FILE_SIZE} bytes`,
       "fileSize"
     ));
   }
   
   if (!isNonEmptyString(m.mimeType)) {
-    errors.push(createError(ErrorCode.MISSING_FIELD, "MIME type is required", "mimeType"));
+    errors.push(createError(ErrorCode.VALIDATION_MISSING_FIELD, "MIME type is required", "mimeType"));
   }
   
   return {
@@ -386,15 +397,15 @@ export function validateFileTransfer(message: unknown): ValidationResult<FileTra
 // Generic Message Validation
 // ============================================================================
 
-export function validateMessage(message: unknown): ValidationResult<XSGMessage> {
+export function validateMessage(message: unknown): ValidationResult<unknown> {
   const baseResult = validateBaseMessage(message);
   if (!baseResult.valid) {
     return baseResult;
   }
-  
+
   const m = message as Record<string, unknown>;
   const type = m.type as MessageType;
-  
+
   switch (type) {
     case MessageType.CHAT:
       return validateChatMessage(message);
@@ -409,7 +420,7 @@ export function validateMessage(message: unknown): ValidationResult<XSGMessage> 
     default:
       return {
         valid: false,
-        errors: [createError(ErrorCode.INVALID_TYPE, "Unknown message type: " + type, "type")],
+        errors: [createError(ErrorCode.VALIDATION_INVALID_TYPE, "Unknown message type: " + type, "type")],
       };
   }
 }
@@ -499,18 +510,11 @@ export function checkVersionCompatibility(version: string): {
   };
 }
 
-// Validation result types
-export interface ValidationResult<T = unknown> {
-  success: boolean;
-  data?: T;
-  errors?: string[];
-}
-
 // Protocol Validator Class
 export class ProtocolValidator {
   private schemas: Map<string, unknown> = new Map();
 
-  validateMessage(message: unknown): ValidationResult {
+  validateMessage(message: unknown): { success: boolean; data?: unknown; errors?: string[] } {
     if (!message || typeof message !== 'object') {
       return { success: false, errors: ['Message must be an object'] };
     }
@@ -528,7 +532,7 @@ export class ProtocolValidator {
     this.schemas.set(type, schema);
   }
 
-  validate<T>(type: string, data: unknown): ValidationResult<T> {
+  validate<T>(type: string, data: unknown): { success: boolean; data?: T; errors?: string[] } {
     const schema = this.schemas.get(type);
     if (!schema) {
       return { success: false, errors: [`Unknown type: ${type}`] };

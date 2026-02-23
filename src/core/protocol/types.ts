@@ -172,78 +172,92 @@ export interface XSGMessage {
   expiresAt?: number;
   extensions?: Record<string, unknown>;
   version?: string;
-  editHistory?: Array<{ content: string; timestamp: number }>;
+  editHistory?: Array<{ content: unknown; timestamp: number }>;
 }
 
 export interface ChatMessage extends XSGMessage {
   type: MessageType.CHAT;
-  content: MessageContent & {
-    type: ContentType.TEXT | ContentType.IMAGE | ContentType.FILE | ContentType.RICHTEXT;
-  };
-  editHistory?: Array<{ content: string; timestamp: number }>;
+  content: MessageContent;
+  editHistory?: Array<{ content: unknown; timestamp: number }>;
 }
 
 export interface AgentCommand {
   id: string;
+  type: MessageType.COMMAND;
   agentId: string;
-  commandType: AgentCommandType;
+  commandType?: AgentCommandType;
   command: {
     type: string;
     payload: unknown;
   };
   context: {
-    history: XSGMessage[];
+    history: Array<{ role: string; content: string }>;
     files: string[];
     permissions: string[];
     sessionState?: Record<string, unknown>;
   };
   sender: Sender;
+  auth: AuthContext;
   timestamp: number;
   timeout?: number;
   priority?: number;
+  version?: string;
 }
 
 export interface SystemEvent {
   id: string;
+  type: MessageType.EVENT;
   eventType: SystemEventType;
   timestamp: number;
   channelId?: string;
   userId?: string;
   agentId?: string;
-  data: Record<string, unknown>;
+  data: unknown;
   description?: string;
+  sender?: Sender;
+  target?: Target;
+  version?: string;
 }
 
 export interface FileTransfer {
   id: string;
+  type: MessageType.FILE;
   fileId: string;
   fileName: string;
   fileSize: number;
   mimeType: string;
-  checksum: string;
+  checksum?: string;
   sender: Sender;
-  recipient: {
+  target: Target;
+  recipient?: {
     userId?: string;
     channelId?: string;
   };
   status: FileTransferStatus;
-  transferredBytes: number;
+  transferredBytes?: number;
   chunkSize: number;
   totalChunks: number;
-  completedChunks: number[];
-  createdAt: number;
+  completedChunks?: number[];
+  createdAt?: number;
+  timestamp?: number;
   completedAt?: number;
   storageLocation?: string;
+  version?: string;
+  auth: AuthContext;
+  chunks?: FileChunk[];
+  resumeFromChunk?: number;
+  encryptionKey?: string;
 }
 
 export interface FileChunk {
-  transferId: string;
-  index: number;
-  chunkIndex?: number;
-  data: string | Uint8Array;
-  size: number;
+  transferId?: string;
+  fileId: string;
+  index?: number;
+  chunkIndex: number;
+  data: Uint8Array;
+  size?: number;
   checksum?: string;
-  fileId?: string;
+  isLast?: boolean;
 }
 
 // 协议元数据类型
@@ -283,11 +297,13 @@ export interface SerializationOptions {
 export interface SerializationResult {
   format: SerializationFormat;
   data: string | Uint8Array;
-  originalSize: number;
-  serializedSize: number;
+  originalSize?: number;
+  serializedSize?: number;
+  byteLength?: number;
   checksum?: string;
-  success?: boolean;
-  error?: string;
+  success: boolean;
+  error?: string | { code: string; message: string };
+  errorCode?: string;
 }
 
 export interface ProtocolPacket {
@@ -302,10 +318,12 @@ export interface ProtocolPacket {
 }
 
 // 验证相关类型
-export interface ValidationResult {
+export interface ValidationResult<T = unknown> {
   valid: boolean;
+  data?: T;
+  success?: boolean;
   errors: ValidationError[];
-  warnings: ValidationWarning[];
+  warnings?: ValidationWarning[];
 }
 
 export interface ValidationError {
@@ -361,7 +379,7 @@ export interface DeserializationResult<T = unknown> {
   success: boolean;
   data?: T;
   format?: SerializationFormat;
-  error?: string;
+  error?: string | { code: string; message: string };
   errorCode?: string;
 }
 
@@ -386,8 +404,11 @@ export interface ExtendedChatMessage extends ChatMessage {
   editHistory?: Array<{ content: string; timestamp: number }>;
 }
 
-export interface ExtendedFileChunk extends FileChunk {
+export interface ExtendedFileChunk extends Omit<FileChunk, 'fileId'> {
   fileId?: string;
+  isLast?: boolean;
+  receivedAt?: number;
+  transferId?: string;
 }
 
 // Error codes enum
