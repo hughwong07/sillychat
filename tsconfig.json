@@ -1,0 +1,52 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": false,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@core/*": ["src/core/*"],
+      "@config/*": ["src/core/config/*"],
+      "@agents/*": ["src/core/agents/*"],
+      "@memory/*": ["src/core/memory/*"],
+      "@gateway/*": ["src/core/gateway/*"],
+      "@storage/*": ["src/core/storage/*"],
+      "@protocol/*": ["src/core/protocol/*"],
+      "@utils/*": ["src/core/utils/*"]
+    }
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "src/core/storage/manager.ts",
+    "src/core/utils/crypto.ts",
+    "src/core/protocol/validation.ts",
+    "src/core/protocol/messages.ts",
+    "src/core/protocol/serialization.ts",
+    "src/core/config/manager.ts",
+    "src/core/gateway/discovery.ts",
+    "src/core/gateway/message-handler.ts",
+    "src/core/gateway/server.ts",
+    "src/core/gateway/gateway.test.ts"
+  ]
+}
