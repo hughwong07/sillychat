@@ -3,10 +3,23 @@
  * 主进程与核心引擎集成模块
  */
 
-import { ipcMain, BrowserWindow } from 'electron';
+import { ipcMain, IpcMainInvokeEvent, BrowserWindow } from 'electron';
 import { IPCChannels } from '../common/channels.js';
 import { getConfigManager } from '../../../src/core/config/manager.js';
 import { StorageManager } from '../../../src/core/storage/manager.js';
+
+// Validation helpers
+function isValidKey(key: unknown): key is string {
+  return typeof key === 'string' && key.length > 0 && key.length < 256;
+}
+
+function isValidPort(port: unknown): port is number {
+  return typeof port === 'number' && Number.isInteger(port) && port > 0 && port < 65536;
+}
+
+function isValidMessage(message: unknown): message is Record<string, unknown> {
+  return message !== null && typeof message === 'object';
+}
 
 // Core singleton instances
 let storageManager: StorageManager | null = null;
@@ -49,8 +62,11 @@ export function setupCoreIPC(): void {
   });
 
   // Storage operations
-  ipcMain.handle(IPCChannels.STORAGE_GET, async (_, key: string) => {
+  ipcMain.handle(IPCChannels.STORAGE_GET, async (_event: IpcMainInvokeEvent, key: string) => {
     try {
+      if (!isValidKey(key)) {
+        return { success: false, error: 'Invalid key format' };
+      }
       // Use electron-store or similar for now
       // Full storage manager integration will be implemented
       return { success: true, data: null };
@@ -62,8 +78,16 @@ export function setupCoreIPC(): void {
     }
   });
 
-  ipcMain.handle(IPCChannels.STORAGE_SET, async (_, key: string, value: unknown) => {
+  ipcMain.handle(IPCChannels.STORAGE_SET, async (_event: IpcMainInvokeEvent, key: string, value: unknown) => {
     try {
+      if (!isValidKey(key)) {
+        return { success: false, error: 'Invalid key format' };
+      }
+      // Validate value size (limit to 10MB)
+      const valueStr = JSON.stringify(value);
+      if (valueStr.length > 10 * 1024 * 1024) {
+        return { success: false, error: 'Value too large (max 10MB)' };
+      }
       return { success: true };
     } catch (error) {
       return {
@@ -73,8 +97,11 @@ export function setupCoreIPC(): void {
     }
   });
 
-  ipcMain.handle(IPCChannels.STORAGE_DELETE, async (_, key: string) => {
+  ipcMain.handle(IPCChannels.STORAGE_DELETE, async (_event: IpcMainInvokeEvent, key: string) => {
     try {
+      if (!isValidKey(key)) {
+        return { success: false, error: 'Invalid key format' };
+      }
       return { success: true };
     } catch (error) {
       return {
@@ -104,8 +131,12 @@ export function setupCoreIPC(): void {
     };
   });
 
-  ipcMain.handle(IPCChannels.XSG_START_GATEWAY, async (_, port?: number) => {
+  ipcMain.handle(IPCChannels.XSG_START_GATEWAY, async (_event: IpcMainInvokeEvent, port?: number) => {
     try {
+      // Validate port if provided
+      if (port !== undefined && !isValidPort(port)) {
+        return { success: false, error: 'Invalid port number (must be 1-65535)' };
+      }
       // Full implementation will integrate with GatewayServer
       return { success: true, port: port || 8080 };
     } catch (error) {
@@ -128,8 +159,12 @@ export function setupCoreIPC(): void {
   });
 
   // Message handling
-  ipcMain.handle(IPCChannels.XSG_SEND_MESSAGE, async (_, message: unknown) => {
+  ipcMain.handle(IPCChannels.XSG_SEND_MESSAGE, async (_event: IpcMainInvokeEvent, message: unknown) => {
     try {
+      // Validate message
+      if (!isValidMessage(message)) {
+        return { success: false, error: 'Invalid message format' };
+      }
       // Broadcast to all renderer windows
       const windows = BrowserWindow.getAllWindows();
       windows.forEach(window => {

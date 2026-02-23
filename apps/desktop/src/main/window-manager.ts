@@ -1,7 +1,6 @@
 import { BrowserWindow, screen, app } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getRecommendedWindowBounds } from './macos/window.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,19 +8,22 @@ const __dirname = path.dirname(__filename);
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
 
-  createMainWindow(): BrowserWindow {
+  async createMainWindow(): Promise<BrowserWindow> {
     // Use macOS recommended bounds on macOS, otherwise calculate
-    const bounds = process.platform === 'darwin'
-      ? getRecommendedWindowBounds()
-      : (() => {
-          const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-          return {
-            width: Math.min(1400, width * 0.8),
-            height: Math.min(900, height * 0.8),
-            minWidth: 900,
-            minHeight: 600,
-          };
-        })();
+    let bounds;
+    if (process.platform === 'darwin') {
+      // Dynamic import to avoid loading macOS module on other platforms
+      const { getRecommendedWindowBounds } = await import('./macos/window.js');
+      bounds = getRecommendedWindowBounds();
+    } else {
+      const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+      bounds = {
+        width: Math.min(1400, width * 0.8),
+        height: Math.min(900, height * 0.8),
+        minWidth: 900,
+        minHeight: 600,
+      };
+    }
 
     this.mainWindow = new BrowserWindow({
       width: bounds.width,
@@ -84,7 +86,11 @@ export class WindowManager {
   }
 
   close(): void {
-    this.mainWindow?.hide();
+    if (process.platform === 'darwin') {
+      this.mainWindow?.hide();
+    } else {
+      this.mainWindow?.close();
+    }
   }
 
   isMaximized(): boolean {

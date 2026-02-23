@@ -58,36 +58,49 @@ const macosAPI = {
   isDarkMode: () => ipcRenderer.invoke('macos-is-dark-mode'),
   getAccentColor: () => ipcRenderer.invoke('macos-get-accent-color'),
   onMenuAction: (callback: (action: string) => void) => {
-    const handler = (_: IpcRendererEvent, action: string) => callback(action);
-    ipcRenderer.on('menu-new-chat', () => callback('new-chat'));
-    ipcRenderer.on('menu-open-settings', () => callback('open-settings'));
-    ipcRenderer.on('menu-toggle-agent-panel', () => callback('toggle-agent-panel'));
-    ipcRenderer.on('menu-toggle-sidebar', () => callback('toggle-sidebar'));
-    ipcRenderer.on('menu-search', () => callback('search'));
-    ipcRenderer.on('menu-send-message', () => callback('send-message'));
-    ipcRenderer.on('fullscreen-change', (_, state: boolean) => callback(`fullscreen:${state}`));
-    ipcRenderer.on('system-theme-changed', (_, theme: string) => callback(`theme:${theme}`));
+    // Create separate handlers for each event
+    const handlers: Record<string, (event: IpcRendererEvent, ...args: unknown[]) => void> = {
+      'menu-new-chat': () => callback('new-chat'),
+      'menu-open-settings': () => callback('open-settings'),
+      'menu-toggle-agent-panel': () => callback('toggle-agent-panel'),
+      'menu-toggle-sidebar': () => callback('toggle-sidebar'),
+      'menu-search': () => callback('search'),
+      'menu-send-message': () => callback('send-message'),
+      'fullscreen-change': (_, state: boolean) => callback(`fullscreen:${state}`),
+      'system-theme-changed': (_, theme: string) => callback(`theme:${theme}`),
+    };
+
+    // Register all handlers
+    Object.entries(handlers).forEach(([channel, handler]) => {
+      ipcRenderer.on(channel, handler);
+    });
+
+    // Return cleanup function
     return () => {
-      ipcRenderer.off('menu-new-chat', handler);
-      ipcRenderer.off('menu-open-settings', handler);
-      ipcRenderer.off('menu-toggle-agent-panel', handler);
-      ipcRenderer.off('menu-toggle-sidebar', handler);
-      ipcRenderer.off('menu-search', handler);
-      ipcRenderer.off('menu-send-message', handler);
+      Object.entries(handlers).forEach(([channel, handler]) => {
+        ipcRenderer.off(channel, handler);
+      });
     };
   },
 };
 
-// Expose APIs to renderer
-contextBridge.exposeInMainWorld('electronAPI', {
+// Build API object
+const api = {
   window: windowAPI,
   theme: themeAPI,
   app: appAPI,
   platform: platformAPI,
   storage: storageAPI,
   xsg: xsgAPI,
-  macos: macosAPI,
-});
+};
+
+// Only expose macOS API on macOS platform
+if (process.platform === 'darwin') {
+  (api as typeof api & { macos: typeof macosAPI }).macos = macosAPI;
+}
+
+// Expose APIs to renderer
+contextBridge.exposeInMainWorld('electronAPI', api);
 
 // Type declaration for renderer
 declare global {

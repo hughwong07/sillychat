@@ -37,7 +37,7 @@ class XSGDesktopApp {
         console.error('[Main] Core initialization failed:', error);
       }
 
-      const mainWindow = this.windowManager.createMainWindow();
+      const mainWindow = await this.windowManager.createMainWindow();
 
       // Configure macOS-specific features
       if (process.platform === 'darwin') {
@@ -65,6 +65,8 @@ class XSGDesktopApp {
     // App quit
     app.on('before-quit', () => {
       this.isQuitting = true;
+      // Clean up IPC handlers to prevent memory leaks
+      this.cleanupIPC();
     });
 
     app.on('window-all-closed', () => {
@@ -123,12 +125,38 @@ class XSGDesktopApp {
       return {
         platform: process.platform,
         arch: process.arch,
-        version: process.getSystemVersion(),
+        version: process.platform === 'darwin' ? (process as NodeJS.Process & { getSystemVersion?(): string }).getSystemVersion?.() || '' : process.version,
       };
     });
 
     // Core integration IPC
     setupCoreIPC();
+  }
+
+  private cleanupIPC(): void {
+    // Remove all IPC handlers to prevent memory leaks
+    ipcMain.removeHandler(IPCChannels.WINDOW_MINIMIZE);
+    ipcMain.removeHandler(IPCChannels.WINDOW_MAXIMIZE);
+    ipcMain.removeHandler(IPCChannels.WINDOW_CLOSE);
+    ipcMain.removeHandler(IPCChannels.WINDOW_IS_MAXIMIZED);
+    ipcMain.removeHandler(IPCChannels.THEME_GET);
+    ipcMain.removeHandler(IPCChannels.THEME_SET);
+    ipcMain.removeHandler(IPCChannels.APP_GET_VERSION);
+    ipcMain.removeHandler(IPCChannels.APP_GET_PATH);
+    ipcMain.removeHandler(IPCChannels.PLATFORM_GET);
+    ipcMain.removeHandler(IPCChannels.STORAGE_GET);
+    ipcMain.removeHandler(IPCChannels.STORAGE_SET);
+    ipcMain.removeHandler(IPCChannels.STORAGE_DELETE);
+    ipcMain.removeHandler(IPCChannels.STORAGE_CLEAR);
+    ipcMain.removeHandler(IPCChannels.XSG_INIT);
+    ipcMain.removeHandler(IPCChannels.XSG_GET_GATEWAY_STATUS);
+    ipcMain.removeHandler(IPCChannels.XSG_START_GATEWAY);
+    ipcMain.removeHandler(IPCChannels.XSG_STOP_GATEWAY);
+    ipcMain.removeHandler(IPCChannels.XSG_SEND_MESSAGE);
+    if (process.platform === 'darwin') {
+      ipcMain.removeHandler('macos-is-dark-mode');
+      ipcMain.removeHandler('macos-get-accent-color');
+    }
   }
 
   private setupSecurity(): void {
