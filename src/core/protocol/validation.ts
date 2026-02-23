@@ -1,5 +1,5 @@
 /**
- * XiaoShagua Chat Protocol - Validation Module
+ * SillyChat Protocol - Validation Module
  * 
  * Message validation and schema verification
  */

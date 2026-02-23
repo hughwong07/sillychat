@@ -112,7 +112,7 @@ describe('Protocol Layer Integration', () => {
         alt: 'Test image',
       });
 
-      const message = createChatMessage(sender, target, imageContent, auth);
+      const message = createChatMessage({ sender, target, content: imageContent, auth });
 
       expect(message.content.type).toBe(ContentType.IMAGE);
       expect(message.content.data).toHaveProperty('url');
@@ -129,7 +129,7 @@ describe('Protocol Layer Integration', () => {
         url: 'https://example.com/file.pdf',
       });
 
-      const message = createChatMessage(sender, target, fileContent, auth);
+      const message = createChatMessage({ sender, target, content: fileContent, auth });
 
       expect(message.content.type).toBe(ContentType.FILE);
       expect(message.content.data).toHaveProperty('fileId', 'file-123');

@@ -1,5 +1,5 @@
 /**
- * XiaoShagua Chat Protocol - Message Factory Functions
+ * SillyChat Protocol - Message Factory Functions
  */
 
 import {
@@ -347,7 +347,7 @@ export function createChatCommand(
   return createAgentCommand({
     agentId,
     commandType: AgentCommandType.CHAT,
-    payload: { message },
+    payload: { text: message },
     sender,
     auth,
     context: { history },

@@ -1,7 +1,7 @@
 /**
- * XiaoShagua Chat Protocol Module
+ * SillyChat Protocol Module
  *
- * Protocol communication module for XiaoShagua Chat
+ * Protocol communication module for SillyChat
  * Supports JSON and Protocol Buffers serialization
  */
 

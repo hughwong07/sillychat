@@ -1,5 +1,5 @@
 /**
- * XiaoShagua Chat Protocol - Serialization Module
+ * SillyChat Protocol - Serialization Module
  * 
  * Supports JSON and Protocol Buffers serialization formats
  */

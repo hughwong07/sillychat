@@ -1,7 +1,7 @@
 /**
  * Protocol Module Unit Tests
  *
- * Test suite for XiaoShagua Chat Protocol
+ * Test suite for SillyChat Protocol
  *
  * NOTE: Temporarily skipped due to module exports being disabled
  * while resolving type dependencies.
@@ -79,7 +79,7 @@ describe("Protocol Module", () => {
       expect(PROTOCOL_VERSION.major).toBe(1);
       expect(PROTOCOL_VERSION.minor).toBe(0);
       expect(PROTOCOL_VERSION.patch).toBe(0);
-      expect(PROTOCOL_VERSION.name).toBe("XSG-Protocol-v1");
+      expect(PROTOCOL_VERSION.name).toBe("SillyChat-Protocol-v1");
     });
     
     it("should have correct size limits", () => {
@@ -359,7 +359,7 @@ describe("Protocol Module", () => {
     });
     
     it("should check version compatibility", () => {
-      const result = checkVersionCompatibility("XSG-Protocol-v1");
+      const result = checkVersionCompatibility("SillyChat-Protocol-v1");
       expect(result.compatible).toBe(true);
       
       const wrongResult = checkVersionCompatibility("Other-Protocol-v1");
