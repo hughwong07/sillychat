@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
+import androidx.biometric.BiometricPrompt.AuthenticationResult
 import com.facebook.react.bridge.*
 import kotlinx.coroutines.*
 import java.io.File
@@ -323,9 +324,9 @@ class StorageModule(reactContext: ReactApplicationContext) :
     }
 
     private fun getOrCreateSecretKey(): SecretKey {
-        return if (keyStore.containsAlias(KEY_ALIAS)) {
-            keyStore.getEntry(KEY_ALIAS, null) as KeyStore.SecretKeyEntry
-        }.secretKey else {
+        if (keyStore.containsAlias(KEY_ALIAS)) {
+            return (keyStore.getEntry(KEY_ALIAS, null) as KeyStore.SecretKeyEntry).secretKey
+        } else {
             val keyGenerator = KeyGenerator.getInstance("AES", ANDROID_KEYSTORE)
             keyGenerator.init(
                 android.security.keystore.KeyGenParameterSpec.Builder(
@@ -339,7 +340,7 @@ class StorageModule(reactContext: ReactApplicationContext) :
                     .setUserAuthenticationRequired(false)
                     .build()
             )
-            keyGenerator.generateKey()
+            return keyGenerator.generateKey()
         }
     }
 

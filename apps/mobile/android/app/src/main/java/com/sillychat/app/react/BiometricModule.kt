@@ -1,11 +1,13 @@
 package com.sillychat.app.react
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
+import androidx.biometric.BiometricPrompt.AuthenticationResult
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.*
 import java.util.concurrent.Executor
@@ -286,9 +288,9 @@ class BiometricModule(reactContext: ReactApplicationContext) :
         val packageManager = reactApplicationContext.packageManager
 
         return when {
-            packageManager.hasSystemFeature(Context.FEATURE_FACE) -> "FaceID"
-            packageManager.hasSystemFeature(Context.FEATURE_IRIS) -> "Iris"
-            packageManager.hasSystemFeature(Context.FEATURE_FINGERPRINT) -> "Fingerprint"
+            packageManager.hasSystemFeature(PackageManager.FEATURE_FACE) -> "FaceID"
+            packageManager.hasSystemFeature(PackageManager.FEATURE_IRIS) -> "Iris"
+            packageManager.hasSystemFeature(PackageManager.FEATURE_FINGERPRINT) -> "Fingerprint"
             else -> "Biometric"
         }
     }
