@@ -385,6 +385,8 @@ export function validateFileTransfer(message: unknown): ValidationResult<FileTra
   
   if (!isNonEmptyString(m.mimeType)) {
     errors.push(createError(ErrorCode.VALIDATION_MISSING_FIELD, "MIME type is required", "mimeType"));
+  } else if (!/^\w+\/[\w.+-]+$/i.test(m.mimeType)) {
+    errors.push(createError(ErrorCode.VALIDATION_INVALID_TYPE, "Invalid MIME type format", "mimeType"));
   }
   
   return {
@@ -398,30 +400,41 @@ export function validateFileTransfer(message: unknown): ValidationResult<FileTra
 // ============================================================================
 
 export function validateMessage(message: unknown): ValidationResult<unknown> {
-  const baseResult = validateBaseMessage(message);
-  if (!baseResult.valid) {
-    return baseResult;
-  }
-
-  const m = message as Record<string, unknown>;
-  const type = m.type as MessageType;
-
-  switch (type) {
-    case MessageType.CHAT:
-      return validateChatMessage(message);
-    case MessageType.COMMAND:
-      return validateAgentCommand(message);
-    case MessageType.EVENT:
-      return validateSystemEvent(message);
-    case MessageType.FILE:
-      return validateFileTransfer(message);
-    case MessageType.SYSTEM:
+  try {
+    const baseResult = validateBaseMessage(message);
+    if (!baseResult.valid) {
       return baseResult;
-    default:
-      return {
-        valid: false,
-        errors: [createError(ErrorCode.VALIDATION_INVALID_TYPE, "Unknown message type: " + type, "type")],
-      };
+    }
+
+    const m = message as Record<string, unknown>;
+    const type = m.type as MessageType;
+
+    switch (type) {
+      case MessageType.CHAT:
+        return validateChatMessage(message);
+      case MessageType.COMMAND:
+        return validateAgentCommand(message);
+      case MessageType.EVENT:
+        return validateSystemEvent(message);
+      case MessageType.FILE:
+        return validateFileTransfer(message);
+      case MessageType.SYSTEM:
+        return baseResult;
+      default:
+        return {
+          valid: false,
+          errors: [createError(ErrorCode.VALIDATION_INVALID_TYPE, "Unknown message type: " + type, "type")],
+        };
+    }
+  } catch (error) {
+    return {
+      valid: false,
+      errors: [createError(
+        ErrorCode.VALIDATION_INVALID_FORMAT,
+        error instanceof Error ? error.message : "Validation failed",
+        "message"
+      )],
+    };
   }
 }
 

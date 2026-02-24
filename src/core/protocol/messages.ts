@@ -413,7 +413,7 @@ export function createSystemEvent(options: SystemEventOptions): SystemEvent {
 export function createUserJoinEvent(userId: string, channelId: string, displayName?: string): SystemEvent {
   return createSystemEvent({
     eventType: SystemEventType.USER_JOIN,
-    data: { userId, displayName },
+    data: { userId, channelId, displayName },
     target: createGroupTarget(channelId),
   });
 }

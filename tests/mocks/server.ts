@@ -257,18 +257,63 @@ export const mockState = {
 // ============================================================================
 
 export const handlers = [
-  // Health check endpoint
-  http.get('http://localhost:*/health', () => {
+  // Webhook Service Mock (port 9000)
+  http.get('http://localhost:9000/health', () => {
     return HttpResponse.json({
-      status: 'running',
+      status: 'healthy',
+      service: 'webhook',
       uptime: 3600,
-      connections: 5,
       timestamp: Date.now(),
     });
   }),
 
-  // Stats endpoint
-  http.get('http://localhost:*/stats', () => {
+  http.post('http://localhost:9000/webhook', async ({ request }) => {
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      // If JSON parsing fails, return 400
+      return HttpResponse.json(
+        {
+          success: false,
+          error: 'Invalid JSON payload',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate webhook payload
+    if (!body || typeof body !== 'object') {
+      return HttpResponse.json(
+        {
+          success: false,
+          error: 'Invalid webhook payload',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Mock successful webhook processing - empty object is valid
+    return HttpResponse.json({
+      success: true,
+      message: 'Webhook received',
+      receivedAt: Date.now(),
+      id: mockFactories.generateId('webhook'),
+    });
+  }),
+
+  // Health check endpoint for non-test ports (only port 9000 - webhook service)
+  http.get('http://localhost:9000/health', () => {
+    return HttpResponse.json({
+      status: 'healthy',
+      service: 'webhook',
+      uptime: 3600,
+      timestamp: Date.now(),
+    });
+  }),
+
+  // Stats endpoint for webhook service (port 9000)
+  http.get('http://localhost:9000/stats', () => {
     return HttpResponse.json({
       totalConnections: 100,
       activeConnections: 5,
@@ -281,8 +326,8 @@ export const handlers = [
     });
   }),
 
-  // Auth - Login
-  http.post('http://localhost:*/api/v1/auth/login', async ({ request }) => {
+  // Auth - Login (only intercept webhook service port 9000)
+  http.post('http://localhost:9000/api/v1/auth/login', async ({ request }) => {
     const body = (await request.json()) as { username: string; password: string };
 
     // Validate credentials (mock validation)
@@ -318,8 +363,8 @@ export const handlers = [
     });
   }),
 
-  // Auth - Register
-  http.post('http://localhost:*/api/v1/auth/register', async ({ request }) => {
+  // Auth - Register (only intercept webhook service port 9000)
+  http.post('http://localhost:9000/api/v1/auth/register', async ({ request }) => {
     const body = (await request.json()) as {
       username: string;
       password: string;
@@ -372,8 +417,8 @@ export const handlers = [
     });
   }),
 
-  // Get current user
-  http.get('http://localhost:*/api/v1/users/me', ({ request }) => {
+  // Get current user (only intercept webhook service port 9000)
+  http.get('http://localhost:9000/api/v1/users/me', ({ request }) => {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return HttpResponse.json(
@@ -419,8 +464,8 @@ export const handlers = [
     });
   }),
 
-  // Get conversations
-  http.get('http://localhost:*/api/v1/conversations', ({ request }) => {
+  // Get conversations (only intercept webhook service port 9000)
+  http.get('http://localhost:9000/api/v1/conversations', ({ request }) => {
     const url = new URL(request.url);
     const page = parseInt(url.searchParams.get('page') || '1');
     const limit = parseInt(url.searchParams.get('limit') || '20');
@@ -437,8 +482,8 @@ export const handlers = [
     });
   }),
 
-  // Create conversation
-  http.post('http://localhost:*/api/v1/conversations', async ({ request }) => {
+  // Create conversation (only intercept webhook service port 9000)
+  http.post('http://localhost:9000/api/v1/conversations', async ({ request }) => {
     const body = (await request.json()) as { title: string; participants: string[] };
 
     const conversation = mockFactories.createConversation({
@@ -454,8 +499,8 @@ export const handlers = [
     });
   }),
 
-  // Get messages for a conversation
-  http.get('http://localhost:*/api/v1/conversations/:id/messages', ({ params }) => {
+  // Get messages for a conversation (only intercept webhook service port 9000)
+  http.get('http://localhost:9000/api/v1/conversations/:id/messages', ({ params }) => {
     const { id } = params;
 
     const messages = Array.from(mockState.messages.values()).filter(
@@ -469,8 +514,8 @@ export const handlers = [
     });
   }),
 
-  // Send message
-  http.post('http://localhost:*/api/v1/conversations/:id/messages', async ({ params, request }) => {
+  // Send message (only intercept webhook service port 9000)
+  http.post('http://localhost:9000/api/v1/conversations/:id/messages', async ({ params, request }) => {
     const { id } = params;
     const body = (await request.json()) as { content: string };
 
@@ -487,8 +532,8 @@ export const handlers = [
     });
   }),
 
-  // Get agents
-  http.get('http://localhost:*/api/v1/agents', () => {
+  // Get agents (only intercept webhook service port 9000)
+  http.get('http://localhost:9000/api/v1/agents', () => {
     const agents = Array.from(mockState.agents.values());
 
     return HttpResponse.json({
@@ -498,8 +543,8 @@ export const handlers = [
     });
   }),
 
-  // Get agent detail
-  http.get('http://localhost:*/api/v1/agents/:id', ({ params }) => {
+  // Get agent detail (only intercept webhook service port 9000)
+  http.get('http://localhost:9000/api/v1/agents/:id', ({ params }) => {
     const { id } = params;
     const agent = mockState.agents.get(id as string);
 
@@ -521,8 +566,8 @@ export const handlers = [
     });
   }),
 
-  // File upload
-  http.post('http://localhost:*/api/v1/upload', async ({ request }) => {
+  // File upload (only intercept webhook service port 9000)
+  http.post('http://localhost:9000/api/v1/upload', async ({ request }) => {
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
@@ -561,7 +606,9 @@ export const handlers = [
 // ============================================================================
 
 export const wsHandlers = [
-  ws.link('ws://localhost:*/ws').addEventListener('connection', ({ client }) => {
+  // Only intercept WebSocket connections to ports other than 18791 (Gateway test port)
+  // Use a pattern that excludes the test server port
+  ws.link('ws://localhost:1879[0,2-9]/ws').addEventListener('connection', ({ client }) => {
     // Send welcome message
     client.send(
       JSON.stringify({
@@ -614,13 +661,51 @@ export const wsHandlers = [
       }
     });
   }),
+
+  // Webhook Service WebSocket Mock (port 9000)
+  // Intercepts connections to ws://localhost:9000/ws
+  ws.link('ws://localhost:9000/ws').addEventListener('connection', ({ client }) => {
+    // Send connected message (webhook service uses 'connected' type)
+    client.send(
+      JSON.stringify({
+        type: 'connected',
+        message: 'Connected to webhook service',
+        timestamp: Date.now(),
+      })
+    );
+
+    client.addEventListener('message', (event) => {
+      try {
+        const message = JSON.parse(event.data as string);
+
+        // Handle ping from client
+        if (message.type === 'ping') {
+          client.send(
+            JSON.stringify({
+              type: 'pong',
+              timestamp: Date.now(),
+            })
+          );
+        }
+      } catch (error) {
+        client.send(
+          JSON.stringify({
+            type: 'error',
+            code: 'INVALID_MESSAGE',
+            message: 'Failed to parse message',
+            timestamp: Date.now(),
+          })
+        );
+      }
+    });
+  }),
 ];
 
 // ============================================================================
 // MSW Server Setup
 // ============================================================================
 
-export const server = setupServer(...handlers);
+export const server = setupServer(...handlers, ...wsHandlers);
 
 /**
  * Start the mock server

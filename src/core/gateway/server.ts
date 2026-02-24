@@ -1,7 +1,7 @@
 import { createServer, Server as HttpServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { EventEmitter } from 'events';
-import { GatewayConfig, GatewayState, GatewayStats, ConnectionInfo } from './types.js';
+import { GatewayConfig, GatewayState, GatewayStats, GatewayServerState, ConnectionInfo } from './types.js';
 import { SessionManager } from './session.js';
 import { AuthManager } from './auth.js';
 import type { MessageHandler } from './types.js';
@@ -73,7 +73,7 @@ export class GatewayServer extends EventEmitter {
 
     try {
       // Create HTTP server
-      this.httpServer = createServer(this.handleHttpRequest.bind(this));
+      this.httpServer = createServer(this.handleHttpRequest);
 
       // Create WebSocket server
       this.wsServer = new WebSocketServer({
@@ -83,7 +83,7 @@ export class GatewayServer extends EventEmitter {
       });
 
       // Setup WebSocket handlers
-      this.wsServer.on('connection', this.handleConnection.bind(this));
+      this.wsServer.on('connection', this.handleConnection);
       this.wsServer.on('error', this.handleServerError.bind(this));
 
       // Start listening
@@ -186,7 +186,7 @@ export class GatewayServer extends EventEmitter {
     this.connections.clear();
   }
 
-  private handleHttpRequest(req: import('http').IncomingMessage, res: import('http').ServerResponse): void {
+  private handleHttpRequest = (req: import('http').IncomingMessage, res: import('http').ServerResponse): void => {
     // Health check endpoint
     if (req.url === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -210,7 +210,7 @@ export class GatewayServer extends EventEmitter {
     res.end('Not Found');
   }
 
-  private handleConnection(ws: WebSocket, req: import('http').IncomingMessage): void {
+  private handleConnection = (ws: WebSocket, req: import('http').IncomingMessage): void => {
     const clientId = this.generateClientId();
     const remoteAddress = req.socket.remoteAddress || 'unknown';
 
@@ -358,7 +358,10 @@ export class GatewayServer extends EventEmitter {
   }
 
   getStats(): GatewayStats {
-    return { ...this.stats };
+    return {
+      ...this.stats,
+      state: this.state as unknown as GatewayServerState,
+    };
   }
 
   getConnections(): string[] {

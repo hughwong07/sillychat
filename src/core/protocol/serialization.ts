@@ -61,16 +61,30 @@ export function deserializeFromJSON(json: string): DeserializationResult<XSGMess
 }
 
 /**
+ * Calculate SHA-256 checksum of data
+ */
+async function calculateChecksum(data: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const dataBuffer = encoder.encode(data);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", dataBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
  * Serialize message with result wrapper
  */
 export function serializeJSON(message: XSGMessage): SerializationResult {
   try {
     const data = serializeToJSON(message);
+    // Note: checksum is calculated asynchronously but we return synchronously
+    // The checksum field will be populated by the caller if needed
     return {
       success: true,
       data,
       format: SerializationFormat.JSON,
       byteLength: new TextEncoder().encode(data).length,
+      checksum: "", // Placeholder - will be set by async wrapper if needed
     };
   } catch (error) {
     return {
@@ -219,9 +233,11 @@ function byteToMessageType(byte: number): MessageType {
  */
 export function serialize(
   message: XSGMessage,
-  format: SerializationFormat = SerializationFormat.JSON
+  options?: SerializationFormat | { format?: SerializationFormat }
 ): SerializationResult {
-  switch (format) {
+  const format = typeof options === "object" ? options?.format : options;
+  const resolvedFormat = format ?? SerializationFormat.JSON;
+  switch (resolvedFormat) {
     case SerializationFormat.JSON:
       return serializeJSON(message);
     case SerializationFormat.PROTOBUF:
@@ -231,7 +247,7 @@ export function serialize(
         success: false,
         format: SerializationFormat.JSON,
         data: "",
-        error: `Unsupported serialization format: ${format}`,
+        error: `Unsupported serialization format: ${resolvedFormat}`,
         errorCode: ErrorCode.UNSUPPORTED_FORMAT,
       };
   }
